@@ -1,0 +1,195 @@
+Architecture & Navigation
+The portal operates as a fixed-position overlay (position: fixed; inset: 0) that locks the underlying site scroll (overflow: hidden on body) and renders a self-contained application shell. It never navigates — all 9 sections are pre-rendered in the DOM as display: none panels; tab clicks toggle visibility via classList. Switching panels always resets scrollTop to zero.
+Session behavior: Charts initialize once on first portal entry (chartsInit flag), destroying and re-rendering only on dark/light mode toggle to recolor canvas elements. No data persistence — all state is in-memory.
+
+Panel-by-Panel Breakdown
+1. Dashboard
+Purpose: Command overview — single-screen situational awareness across all active engagements.
+KPI Strip (4 cards, horizontal):
+MetricValueLogicActive Engagements7 activeCount of principals under retainerTasks Completed84%Completed ÷ total tasks, with inline progress barHours This Month124h / 160hUsage against retainer ceiling, with progress barRetainer BalanceAED 45KOutstanding amount with next-due date
+Goal Progress Bar Chart:
+
+Type: Vertical bar, 6 categories
+X-axis: Strategic goal labels (Governance, Ops Systems, Cross-Border, Comms, Vault, Advisory)
+Y-axis: 0–110% (capped above 100 for visual breathing room)
+Color logic: First two bars (completed goals) render at full gold opacity (0.8); remaining bars at 0.38 opacity — visually separating achieved from in-progress
+No legend. Tooltip shows exact percentage on hover.
+
+Active Tasks List:
+
+6 items, ledger format (no dividers, 20px vertical rhythm)
+Status dot colors: gold filled = delivered, gold dimmed = in progress, muted = pending/queued
+Priority label right-aligned: gold text for high-priority, muted for standard
+
+Governance Health Radar:
+
+Type: Radar (spider), 5 axes: Board, Ops, Comms, Legal, Advisory
+Scores: 78–92 range, rendered as a filled polygon with 6% gold fill opacity
+No gridline labels — uses angle labels only, at 32% opacity (felt, not read)
+Measures structural governance maturity across domains
+
+Monthly Activity Line Chart:
+
+Type: Dual-line, Jan–Jun
+Solid line (actual): Jan=88h, Feb=102h, Mar=118h, Apr=124h
+Dashed line (forecast): Apr–Jun projection to 140h — visually distinct via borderDash: [3,3] and 20% opacity
+Fill under actual line at 5% gold tint
+No y-axis label; callback appends h suffix to ticks
+
+
+2. Time Tracking
+Purpose: Retainer utilisation management — hour burn rate, project allocation, and raw log.
+KPI Strip:
+
+Hours Used: 124h with inline progress bar (77.5% width = 124/160)
+Hours Remaining: 36h with percentage callout
+Avg Daily: 5.6h with month-over-month comparison (↑ from 4.8h)
+Active Projects: 4
+
+Hours by Category Donut:
+
+Type: Doughnut, 64% cutout
+7 segments: Governance (34h), Advisory (26h), Comms (20h), Docs (18h), Research (12h), Coord (8h), Other (6h)
+Color: Single gold ramp, opacity decreasing from 0.88 to 0.09 — enforces visual hierarchy without introducing new hues
+Legend: Right-side, 9px Inter, 38% opacity
+Hover tooltip shows label + hour count
+
+Project Breakdown Bars:
+
+7 horizontal bar rows, each: label (120px fixed width) + track + value
+Track fills are percentage of 160h retainer ceiling, not of each other
+E.g., Governance = 34/160 = 21.25% → rendered as 72% of bar width (normalized to largest = 34h)
+Values right-aligned in Manrope 300
+
+Time Log Table:
+
+Columns: Date, Project, Description, Hours (Manrope mono style), Status badge
+b-done (green) badge = logged and approved
+Sorted newest-first
+Row hover: 1% white background lift (tonal, no border)
+
+
+3. Tasks
+Purpose: Kanban-style task management across all active engagement workstreams.
+KPI Strip: Total (24), In Progress (8), Completed (11), Overdue (0).
+Kanban Board (3 columns):
+To Do: Standard backlog. Cards without left-border accent. Badges: b-wait (gold, Standard) or b-pend (gold, Review).
+In Progress: Active tasks. Priority items carry a 2px solid #c8b97a left-border — the Ledger "premium status" indicator from the design system. Badges: b-pend (Urgent) or b-prog (blue-grey, Active).
+Completed: Historical record. Cards rendered at 50% opacity — present but visually receded. All badges b-done (green).
+Each card: task title (Inter 300), project category label (muted, 10px), bottom row with due date + status badge.
+Workflow: No drag-and-drop in this implementation — cards are static. Column counts in the header update to reflect data. Clicking a card has hover feedback (background lift) but no detail panel.
+
+4. Approvals
+Purpose: Decision queue for legal, financial, governance, and document items requiring principal authorization.
+Approval Item Structure:
+
+Type label (76px fixed, uppercase, muted) — Legal / Financial / Document / Governance
+Title + subtitle describing the item and its origin/context
+Two action buttons: Approve (a-ok) and Reject (a-rej)
+
+Interaction: Clicking either button sets the row to 38% opacity, disables pointer events, and replaces the button pair with a status badge (b-done or b-due). This is destructive — no undo in-session.
+Recently Actioned Table:
+
+Columns: Item, Type, Date, Action badge
+Shows last 3–4 actioned items with final status
+Green badge = approved, red badge = rejected
+
+Workflow: Items flow in from external submission (Legal Counsel, auto-generated invoices, TED-prepared documents). Principal reviews and acts. Approved items trigger downstream notifications (simulated in copy).
+
+5. Invoices / Financial Suite
+Purpose: Full retainer financial management — utilisation tracking, invoice history, revenue visualization.
+Retainer Utilisation Donut:
+
+Type: Doughnut, 74% cutout (tighter than category donut — more ring, less fill)
+2 segments: Used (77%) at rgba(200,185,122,0.78), Remaining (23%) at 4% white
+Centered label overlay: large Manrope 77% + small "Used" label
+Detail list to the right: hours used, hours remaining, overage rate (AED 550/h), cycle end date
+
+Revenue Trend Bar Chart:
+
+Type: Stacked vertical bar, Jan–May
+Stack layer 1 (lower, dimmer): Base retainer AED 60,000 each month
+Stack layer 2 (upper, brighter): Overage — only Apr shows AED 7,700 (14h × 550)
+May labeled with asterisk (upcoming/forecast)
+Y-axis callback: AED Xk format
+
+Invoice Table:
+
+Columns: Invoice # (TED-0XXX), Period, Description, Amount (Manrope mono), Status badge, Action link
+Status badges: b-pend (upcoming), b-done (paid), b-due (overdue — none currently)
+Action column: "Preview" for upcoming, "Download" for paid — styled as gold text links
+Sorted newest-first; 6 rows visible
+
+
+6. Clients
+Purpose: Confidential principal roster — no real names, reference codes only.
+Client Table:
+
+Columns: Client (avatar initials + code), Sector, Tier badge, Country, Since (onboarding month), Status, Retainer/mo
+Tier badges: b-pend (Tier III Family Office), b-prog (Tier I C-Suite), b-wait (Tier II Founder)
+All status badges b-done (Active) — no churned clients displayed
+Avatar: 30px circle, 10% gold background, Cormorant SC initials in gold
+
+KPI Strip: Active (7), Countries (3), Avg Tenure (14mo), Retention (96%).
+No edit/delete functionality — read-only directory.
+
+7. CRM
+Purpose: New business pipeline — prospects, deal stages, relationship activity.
+Pipeline by Stage Horizontal Bar Chart:
+
+Type: Bar, indexAxis: 'y' (horizontal orientation)
+5 stages: Negotiation (120K), Referred (115K), Discussion (80K), Proposal (60K), Initial (45K)
+Note: sorted by value descending in chart, not by funnel stage — shows monetary weight
+Color: Gold ramp descending from 0.82 to 0.18 opacity
+X-axis: AED Xk callback format
+
+Prospect Directory List:
+
+4 visible entries: initials avatar, name code, sector/location, right-aligned deal value + stage badge
+Badges: b-hot (orange, Negotiation), b-warm (gold, Proposal/Discussion), b-cold (blue-grey, Initial)
+Color encoding maps directly to temperature metaphor — immediately scannable
+
+CRM Activity Table:
+
+Columns: Date, Contact, Activity description, Next Step, Stage badge
+Tracks last meaningful interaction per prospect
+Next Step is a plain text field — acts as a manual CRM note
+
+
+8. Reports
+Purpose: Performance analytics — revenue, utilisation, client satisfaction, SLA compliance.
+Revenue vs Hours Dual-Axis Line Chart:
+
+Type: Line with two independent Y-axes
+Left axis (y): Revenue in AED (callback: AED Xk) — gold solid line, 6% fill
+Right axis (y1): Hours logged — dashed line at 22% opacity
+Allows correlation analysis: do hour increases map to overage revenue?
+4 data points (Jan–Apr); no forecast on this chart
+Legend: both series labeled, 32% opacity
+
+Performance Summary:
+
+5 static metrics in ledger format: label (9px uppercase Inter) + value (Manrope 22px 300 weight) + context note
+Metrics: On-time delivery (98.2%), satisfaction (9.7/10), response time (1h 24m), documents processed (47), cross-border coordinations (12)
+No chart — pure typography. Intentional: text is the primary UI element per design system rules.
+
+
+9. Audit Trail
+Purpose: Immutable, timestamped log of all portal activity — security and accountability layer.
+KPI Strip: Events today (14), MTD total (312), Vault access today (7), Security alerts (0).
+Filter Chips: 6 categories — All Events, Portal Access, Vault, Documents, Financial, Approvals. Chips toggle sel class (gold border + tint). Currently decorative — filtering not wired to DOM manipulation.
+Activity Log:
+
+Timeline structure: left-border vertical line with circular node per event
+Node states: default (muted grey circle), imp class = gold filled (high-significance events)
+imp events: Portal access initiations and financial approvals
+Each entry: timestamp (left, 90px min-width, 9px Inter), action description (12px, 300 weight), who/context detail (10px muted), category chip (7.5px uppercase border label)
+10 entries visible; sorted newest-first
+Categories tracked: Portal Access, Vault, Financial, Document, Approvals, Comms, Time, CRM, Tasks
+
+Timestamp format: Today · HH:MM, Yesterday · HH:MM, DD MMM · HH:MM — relative for recency, absolute for older entries.
+
+Cross-Panel Design Patterns
+KPI cards: All panels open with a 4-column KPI strip. Top edge gets a gold gradient hairline on hover (::before pseudo-element, background: linear-gradient(90deg, transparent, gold, transparent)). Progress bars are 1px height, 4% white base, gold fill.
+Table rows: Tonal hover only (1% white lift) — no border highlight. All amounts in Manrope 300 for numeric readability. Badge color system is consistent across all panels: green = positive/done, gold = pending/active, blue-grey = neutral/in-progress, orange = high-priority, red = error/rejected.
+Portal-to-site relationship: Exit button restores body.overflow and hides the portal. Dark mode toggle on the site side destroys and rebuilds all Chart.js instances to match the new canvas colors — this is the only scenario where charts re-initialize.

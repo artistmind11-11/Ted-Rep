@@ -22,19 +22,22 @@ import Contact from "@/pages/contact";
 // Portal pages
 import PortalLogin from "@/pages/portal/login";
 import Dashboard from "@/pages/portal/dashboard";
+import TimeTracking from "@/pages/portal/time-tracking";
 import Tasks from "@/pages/portal/tasks";
-import Clients from "@/pages/portal/clients";
+import Approvals from "@/pages/portal/approvals";
 import Billing from "@/pages/portal/billing";
+import Clients from "@/pages/portal/clients";
 import Team from "@/pages/portal/team";
-import Profile from "@/pages/portal/profile";
+import CRM from "@/pages/portal/crm";
+import Reports from "@/pages/portal/reports";
 import AuditLog from "@/pages/portal/audit";
 import AccessControl from "@/pages/portal/access";
+import Profile from "@/pages/portal/profile";
 
 const queryClient = new QueryClient();
 
 function PortalRoutes() {
   const { user } = usePortalAuth();
-  const [, setLocation] = useLocation();
 
   if (!user) {
     return <PortalLogin />;
@@ -45,13 +48,17 @@ function PortalRoutes() {
       <Switch>
         <Route path="/portal" component={Dashboard} />
         <Route path="/portal/dashboard" component={Dashboard} />
+        <Route path="/portal/time-tracking" component={TimeTracking} />
         <Route path="/portal/tasks" component={Tasks} />
-        <Route path="/portal/clients" component={Clients} />
+        <Route path="/portal/approvals" component={Approvals} />
         <Route path="/portal/billing" component={Billing} />
+        <Route path="/portal/clients" component={Clients} />
         <Route path="/portal/team" component={Team} />
-        <Route path="/portal/profile" component={Profile} />
+        <Route path="/portal/crm" component={CRM} />
+        <Route path="/portal/reports" component={Reports} />
         <Route path="/portal/audit" component={AuditLog} />
         <Route path="/portal/access" component={AccessControl} />
+        <Route path="/portal/profile" component={Profile} />
         <Route component={NotFound} />
       </Switch>
     </PortalLayout>
@@ -78,7 +85,7 @@ function MarketingRoutes() {
 
 function AppRouter() {
   const [location] = useLocation();
-  const isPortal = location.startsWith("/portal");
+  const isPortal = location === "/portal" || location.startsWith("/portal/");
 
   if (isPortal) {
     return (

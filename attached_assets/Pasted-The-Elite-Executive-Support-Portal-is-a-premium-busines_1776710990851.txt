@@ -1,0 +1,39 @@
+The Elite Executive Support Portal is a premium business management platform designed for high-end virtual assistance and executive support services. It bridges the gap between service providers (Founders and Assistants) and high-net-worth or corporate clients, ensuring transparency, efficiency, and professional handling of tasks, time tracking, and billing.
+
+### Core Portal Functions
+
+The portal is organized into several key functional modules, accessible based on user roles:
+
+*   **Dashboard:** Provides a high-level overview of key performance indicators (KPIs), active tasks, and recent activity. It serves as the central command center for all users.
+*   **Time Tracking:** A robust system for logging work hours against specific clients and tasks. It includes status management (submitted, approved, disputed) to ensure accurate billing.
+*   **Task Management:** Allows for creating, assigning, and tracking the status of executive tasks with priority levels and due dates.
+*   **Approval Workflow:** A specialized interface for reviewing time entries, where clients can approve or dispute hours, and founders can finalize entries for invoicing.
+*   **Billing & Invoicing:** Automates the creation of professional invoices based on approved time entries. It manages the full lifecycle from draft to payment.
+*   **CRM (Customer Relationship Management):** Tracks prospective leads and active clients through a pipeline, managing interactions and onboarding steps.
+*   **Client Management:** Stores detailed profiles, service agreements, and onboarding progress for each executive client.
+*   **Audit Logging:** Maintains a comprehensive, role-filtered history of all significant actions within the portal for transparency and security.
+
+### Role-Based Functionality
+
+The portal employs a strict permission-based system with four primary roles:
+
+1.  **Founder (e.g., Sarah Al-Maktoum):** Full administrative access. Can manage all clients, view all financials, create invoices, and override statuses.
+2.  **Assistant (e.g., James Wilson):** Focuses on operational delivery. Can log time, manage assigned tasks, and view logs relevant to their work.
+3.  **Client (e.g., Khalid Bin Zayed):** Focuses on oversight. Can view logged time for their own company, approve/dispute entries, view their invoices, and track task progress.
+4.  **Counsel:** Focused on compliance and oversight, with specific access to reporting and audit trails.
+
+### Operational Workflow
+
+The typical lifecycle of work within the portal follows this sequence:
+
+1.  **Onboarding:** A new lead is managed in the **CRM**. Once "Won," they are converted to an active **Client** with specific onboarding steps (KYC, Agreement, etc.).
+2.  **Execution:** **Assistants** or **Founders** perform work and log hours in the **Time Tracking** module. These entries start in a "Submitted" state.
+3.  **Review:** **Clients** review the submitted hours. They can "Approve" (moving the entry to a ready-state) or "Dispute" (requiring clarification).
+4.  **Invoicing:** On a billing cycle, the **Founder** selects "Approved" entries to generate an **Invoice**. The entry status updates to "Invoiced."
+5.  **Completion:** Once the client pays, the invoice and associated time entries are marked as "Paid," completing the cycle.
+
+### Success Criteria for Implementation
+*   [x] Identified all core modules (Dashboard, Time, Tasks, Billing, CRM, etc.).
+*   [x] Defined role-specific capabilities for Founder, Assistant, and Client.
+*   [x] Documented the end-to-end workflow from lead to paid invoice.
+*   [x] Verified the audit trail and permission logic within the codebase.

@@ -11,32 +11,37 @@ export interface PortalUser {
 }
 
 const DEMO_USERS: PortalUser[] = [
-  {
-    id: "u1",
-    name: "Layla Al-Rashidi",
-    email: "admin@executivedesk.ae",
-    role: "admin",
-  },
-  {
-    id: "u2",
-    name: "Samir Haddad",
-    email: "counsel@executivedesk.ae",
-    role: "counsel",
-  },
-  {
-    id: "u3",
-    name: "Noor Al-Khalifa",
-    email: "associate@executivedesk.ae",
-    role: "associate",
-  },
-  {
-    id: "u4",
-    name: "Khalid Al-Mansouri",
-    email: "client@executivedesk.ae",
-    role: "client",
-    clientId: "c1",
-  },
+  { id: "u1", name: "Layla Al-Rashidi",  email: "admin@executivedesk.ae",     role: "admin" },
+  { id: "u2", name: "Samir Haddad",      email: "counsel@executivedesk.ae",   role: "counsel" },
+  { id: "u3", name: "Noor Al-Khalifa",   email: "associate@executivedesk.ae", role: "associate" },
+  { id: "u4", name: "Khalid Al-Mansouri",email: "client@executivedesk.ae",    role: "client", clientId: "c1" },
 ];
+
+export type PermissionAction =
+  | "view_all_clients" | "view_crm" | "view_billing_all" | "view_billing_own"
+  | "view_team" | "manage_users" | "grant_access" | "revoke_access"
+  | "create_tasks" | "approve_tasks" | "view_tasks_all" | "view_tasks_own"
+  | "view_audit_log" | "view_kpis" | "dispute_invoice" | "view_own_profile";
+
+const PERMISSIONS: Record<UserRole, PermissionAction[]> = {
+  admin: [
+    "view_all_clients", "view_crm", "view_billing_all", "view_billing_own",
+    "view_team", "manage_users", "grant_access", "revoke_access",
+    "create_tasks", "approve_tasks", "view_tasks_all", "view_tasks_own",
+    "view_audit_log", "view_kpis", "view_own_profile",
+  ],
+  counsel: [
+    "view_all_clients", "view_crm", "view_billing_all", "view_billing_own",
+    "view_team", "create_tasks", "approve_tasks", "view_tasks_all",
+    "view_tasks_own", "view_kpis", "view_own_profile",
+  ],
+  associate: [
+    "create_tasks", "view_tasks_all", "view_tasks_own", "view_own_profile",
+  ],
+  client: [
+    "view_billing_own", "view_tasks_own", "dispute_invoice", "view_own_profile",
+  ],
+};
 
 interface AuthContextType {
   user: PortalUser | null;
@@ -44,44 +49,6 @@ interface AuthContextType {
   logout: () => void;
   can: (action: PermissionAction) => boolean;
 }
-
-export type PermissionAction =
-  | "view_all_clients"
-  | "view_crm"
-  | "view_billing_all"
-  | "view_billing_own"
-  | "view_team"
-  | "manage_users"
-  | "grant_access"
-  | "revoke_access"
-  | "create_tasks"
-  | "approve_tasks"
-  | "view_tasks_all"
-  | "view_tasks_own"
-  | "view_audit_log"
-  | "view_kpis"
-  | "dispute_invoice"
-  | "view_own_profile";
-
-const PERMISSIONS: Record<UserRole, PermissionAction[]> = {
-  admin: [
-    "view_all_clients", "view_crm", "view_billing_all", "view_team",
-    "manage_users", "grant_access", "revoke_access", "create_tasks",
-    "approve_tasks", "view_tasks_all", "view_audit_log", "view_kpis",
-    "view_own_profile",
-  ],
-  counsel: [
-    "view_all_clients", "view_crm", "view_billing_all", "view_team",
-    "create_tasks", "approve_tasks", "view_tasks_all", "view_kpis",
-    "view_own_profile",
-  ],
-  associate: [
-    "create_tasks", "view_tasks_all", "view_own_profile",
-  ],
-  client: [
-    "view_billing_own", "view_tasks_own", "dispute_invoice", "view_own_profile",
-  ],
-};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
