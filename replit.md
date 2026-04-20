@@ -16,6 +16,21 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+### The Executive Desk Website (`artifacts/executive-desk-site`)
+- **Type**: react-vite (frontend-only, no backend)
+- **URL**: Served at `/` (root)
+- **Brand**: Charcoal #2C2C2C, Gold #9B8B5F, Off-white #F8F8F6
+- **Fonts**: Cormorant Garamond (serif headings) + Inter (body)
+- **Dark/Light mode**: Implemented with ThemeProvider + localStorage sync
+- **Pages**: Home, About, Services, Testimonials, Blog (+ individual post), FAQ, Contact, Portal
+- **Key files**:
+  - `src/index.css` — full brand theme with CSS custom properties
+  - `src/lib/theme-provider.tsx` — dark/light mode
+  - `src/components/layout.tsx` — shared header/footer with Portal Access button
+  - `src/pages/` — all 9 page components
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

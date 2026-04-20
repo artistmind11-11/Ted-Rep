@@ -1,0 +1,34 @@
+The Executive Desk portal is a multi-role management system designed to coordinate high-value corporate directives and client relationships. It functions as a "Tactical Operating System" for the firm, segregating complex data into actionable modules.
+1. Authentication & Role-Based Access Control (RBAC)
+The portal implements a strict hierarchical permission system that dictates data visibility and interaction capabilities:
+Principal (Admin): Full system sovereignty—access to all billing, strategic metrics, client pipelines, and audit trails.
+Counsel (Executive Editor): High-level management of clients and tasks, with visibility into firm-wide coordination logs.
+Associate (Operations): Focuses on tactical task execution, time tracking, and client-facing deliverables.
+Client (Principal Stakeholder): A strictly isolated view restricted to their own specific tasks, invoices, and onboarding progress.
+2. Strategic Intelligence (Dashboard)
+A high-level command center that aggregates real-time data from across the system:
+KPI Engine: Automatically calculates and displays institutional metrics like Client Retention, Net Promoter Score (NPS), and Response Latency.
+Coordination Stream (Audit Logs): A real-time chronological feed of every significant action taken within the portal (e.g., "Task Approved," "Invoice Generated," "Lead Updated").
+3. Tactical Directive Management (Tasks)
+The primary engine for coordinating work:
+Lifecycle Tracking: Managed through four states: Pending, Active, Completed, and Blocked.
+Prioritization Logic: Categorizes directives by urgency (Low, Medium, High).
+Collaborative Context: Allows for assignment to specific team members and association with distinct client accounts.
+4. Client Relationship Management (CRM & Pipelines)
+Manages the prospect-to-partner transition:
+Pipeline Tracking: Monitors leads through stages (Initial, Qualified, Proposal, Won, Lost).
+Lead Intelligence: Tracks company contact details, status, and estimated deal value.
+Isolation Logic: CRM data is strictly hidden from client-level accounts to maintain firm confidentiality.
+5. Institutional Partner Profiles (Clients)
+A comprehensive repository for active client relations:
+Onboarding Engine: Tracks mandatory procedural steps (Entity Setup, AML/KYC, Bank Accounts) with visual progress indicators.
+Fiscal Tracking: Aggregated view of "Total Invoiced" and "Pending Approval" amounts per client.
+Contact Protocols: Centralized storage of primary client contacts and contact methods.
+6. Fiscal Coordination (Billing & Invoices)
+A modular billing system for professional services:
+Invoice Lifecycle: Generates and tracks invoices from Draft to Paid.
+Drafting & PDF Export: (Mock functionality) simulating the generation of institutional-grade financial documentation.
+7. Global Data Context
+The system uses a centralized Data Context to ensure data integrity. Every action (adding a task, updating a CRM lead, completing an onboarding step) is automatically recorded in the firm’s Audit Stream, providing a permanent, immutable record of coordination.
+
+Attached color palette and Logo
