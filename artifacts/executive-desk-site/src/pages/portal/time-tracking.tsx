@@ -5,7 +5,8 @@ import { usePortalData, TimeStatus, TIME_CATEGORIES } from "@/lib/portal-data";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Clock, TrendingUp, CheckCircle2, ShieldOff } from "lucide-react";
+import { Clock, TrendingUp, CheckCircle2, ShieldOff, Plus } from "lucide-react";
+import { LogTimeEntryModal, ToolbarButton } from "@/components/portal-forms";
 
 const GOLD_OPACITIES = [0.88, 0.75, 0.62, 0.50, 0.38, 0.25, 0.12];
 const STATUS_COLORS: Record<TimeStatus, string> = {
@@ -23,6 +24,7 @@ export default function TimeTracking() {
   const { user, can } = usePortalAuth();
   const { timeEntries, updateTimeStatus } = usePortalData();
   const [filterStatus, setFilterStatus] = useState<TimeStatus | "All">("All");
+  const [showLog, setShowLog] = useState(false);
 
   const myEntries = can("view_tasks_all")
     ? timeEntries
@@ -59,10 +61,16 @@ export default function TimeTracking() {
 
   return (
     <div>
-      <div className="mb-6">
-        <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Retainer Utilisation</p>
-        <h1 className="font-serif text-2xl text-[#F8F8F6]">Time Tracking</h1>
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div>
+          <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Retainer Utilisation</p>
+          <h1 className="font-serif text-2xl text-[#F8F8F6]">Time Tracking</h1>
+        </div>
+        {user?.role !== "client" && (
+          <ToolbarButton onClick={() => setShowLog(true)} icon={Plus} label="Log Time" dataTestid="open-log-time" />
+        )}
       </div>
+      <LogTimeEntryModal open={showLog} onClose={() => setShowLog(false)} />
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -178,9 +186,9 @@ export default function TimeTracking() {
                     <td className="px-5 py-3">
                       {entry.status === "Submitted" && (
                         <div className="flex gap-2">
-                          <button onClick={() => updateTimeStatus(entry.id, "Approved")}
+                          <button onClick={() => updateTimeStatus(user?.name ?? "User", entry.id, "Approved")}
                             className="text-xs text-green-400 hover:text-green-300 transition-colors">Approve</button>
-                          <button onClick={() => updateTimeStatus(entry.id, "Disputed")}
+                          <button onClick={() => { const r = window.prompt("Reason for dispute?") || undefined; updateTimeStatus(user?.name ?? "User", entry.id, "Disputed", r); }}
                             className="text-xs text-red-400 hover:text-red-300 transition-colors">Dispute</button>
                         </div>
                       )}

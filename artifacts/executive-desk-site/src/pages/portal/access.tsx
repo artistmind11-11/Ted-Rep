@@ -63,8 +63,9 @@ export default function AccessControl() {
     addAuditEntry({
       action: action === "grant" ? "Access Granted" : "Access Revoked",
       user: user?.name ?? "Principal",
-      timestamp: new Date().toLocaleString("en-AE"),
       detail: `${action === "grant" ? "Access granted to" : "Access revoked from"} ${member.name} (${member.role})`,
+      category: "Portal Access",
+      important: true,
     });
     setNotification(`${action === "grant" ? "Access granted to" : "Access revoked from"} ${member.name}`);
     setTimeout(() => setNotification(null), 3000);

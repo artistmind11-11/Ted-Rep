@@ -18,7 +18,7 @@ const STATUS_STYLE = {
 };
 
 export default function Approvals() {
-  const { can } = usePortalAuth();
+  const { user, can } = usePortalAuth();
   const { approvals, updateApproval } = usePortalData();
   const [actioned, setActioned] = useState<Set<string>>(new Set(
     approvals.filter((a) => a.status !== "Pending").map((a) => a.id)
@@ -38,7 +38,7 @@ export default function Approvals() {
   const recentlyActioned = approvals.filter((a) => a.status !== "Pending" || actioned.has(a.id)).slice(0, 4);
 
   const handleAction = (id: string, action: "Approved" | "Rejected") => {
-    updateApproval(id, action);
+    updateApproval(user?.name ?? "Principal", id, action);
     setActioned((prev) => new Set([...prev, id]));
   };
 

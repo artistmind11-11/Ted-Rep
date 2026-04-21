@@ -1,0 +1,63 @@
+The Executive Desk portal is a high-level operational platform built to manage institutional directives, client relationships, and fiscal synchronization. Data is managed through a central reactive core, ensuring that every interaction—from a new lead in the CRM to a billable hour logged—is synchronized across the entire system.
+1. Functional Components & Form Details
+Each module is powered by specific data-entry points that validate and distribute information to the relevant operational hubs:
+Task Management (Tactical Directives)
+The Form: The "Initialize Task" modal allows team members to codify directives.
+Fields: Title, detailed description, client association, priority level (Low to Urgent), due date, and estimated resource hours.
+Inline Controls: Live editing of "Actual Hours" directly on task cards for rapid time updating.
+The Transition: Statuses follow a rigorous state machine: Pending → In-Progress → Completed. If a client identifies an issue, they can transition a task to Disputed, requiring analyst intervention.
+Client Relationship Management (CRM)
+Lead Acquisition Form: Captures "Company Name," "Key Stakeholder," "Role," and "Estimated Monthly Value."
+Interaction Logging: A specialized form for documentation of every touchpoint (Calls, Meetings, Emails, Notes).
+Synchronization: High-value leads can be transitioned into active clients. A unique "CRM Pull" mechanic allowing the client management form to pre-fill data from won leads, preventing data duplication.
+Institutional Client Profiles
+Portfolio Entry Form: Manages complex service agreements, including "Service Plan" (Professional/Enterprise), "Hourly Rates," "Retainer Quantities," and "Communication Protocols" (Slack/WhatsApp frequency).
+Strategic Notes: A persistent real-time field for institutional knowledge that doesn't fit standard fields.
+Resource Utilization (Time Tracking)
+Manual Entry Form: Allows for historical logging of "Billable Hours" against specific client tasks, including toggles for "Billable" vs. "Non-billable" time.
+Verification: Logs display "Dispute Reasons" if a partner or client requests a revision on a specific billable entry.
+2. Synchronization & Workflow Architecture
+The portal operates on a Single Source of Truth architecture managed through a central reactive context (DataContext).
+Event-Driven Logging (The Audit Pulse):
+Every form submission (Creating a task, updating a CRM lead, logging a note) triggers an Audit Pulse.
+This pulse automatically generates an entry in the system-wide Audit Trail, stamping the action with the User ID, Timestamp, and specific operational details.
+Cross-Module Reflection:
+KPI Sync: Changes in client status or task completion rates immediately recalculate firm-wide metrics (NPS, Churn, Retention) displayed on the Principal’s Dashboard.
+Fiscal Sync: As hours are logged and approved in the Time Tracking module, they become available for pull into the Billing system, ensuring the invoice pipeline is always current.
+Role-Based Data Filtering (The Firewalls):
+Client Firewall: When a user with the client role logs in, a global filter is applied. They see only their specific tasks and invoices. Forms like "Initialize Task" are restricted to a simplified view, and the entire CRM Pipeline is omitted for confidentiality.
+Internal Oversight: Admins and Counsel see the unfiltered operational stream, while Associates are primarily restricted to task and time-tracking forms.
+3. Detailed Data Manipulation Workflow
+Step 1: Initiation: A lead is entered into the CRM. Analysts log interactions until a proposal is signed.
+Step 2: Conversion: The Principal uses the Client Portal to "Promote" the lead. Data is synchronized via the CRM-pull mechanic into a new Client Profile.
+Step 3: Onboarding: This triggers the Onboarding Wizard, a multi-step verification form tracking Bank Accounts, Legal Status, and KYC progress.
+Step 4: Operational Loop: In the Tasks module, directives are established. Time is logged via the Time Tracking form.
+Step 5: Fiscal Closure: Approved time entries are converted into Invoices, which are then reviewed and approved by the Principal before electronic distribution to the client.
+
+The Executive Desk portal features an interconnected data architecture where information flows seamlessly between modules to eliminate manual re-entry and ensure operational consistency.
+1. The "Prospect-to-Partner" Bridge (CRM ➔ Clients)
+This is the primary synchronization point for growth management.
+The Link: When a lead in the CRM is marked with the active status, they are automatically made available to the Client Management module.
+The Workflow: In the "Add New Client" form, a specialized dropdown appears at the top labeled "Pull from Active CRM Lead."
+Data Migration: Selecting a prospect here instantly populates the client form with the Company Name, Contact Person, Email, and a calculated Hourly Rate based on the prospect's "Monthly Value." This ensures that the strategic context gathered during the sales cycle is perfectly preserved as they become formal institutional partners.
+2. The "Client Directive" Hub (Clients ➔ Tasks)
+Every tactical action in the portal is anchored to a specific account.
+The Link: The Task Management engine is entirely synchronized with the Client Registry.
+The Workflow: When initializing a new task, the system enforces a mandatory "Client" selection from a dynamic list of active institutional partners.
+Automated Labeling: Once assigned, the task card is automatically stamped with the client’s brand name. This allows the system to instantly filter views—admins see the global stack, while clients see an isolated "Client-Only" view of the same tasks.
+3. The "Billable Resource" Loop (Clients/Tasks ➔ Time Tracking)
+Fiscal data is synchronized from operational actions.
+The Link: Time entries are bi-directionally linked to both Clients and Directives.
+The Workflow:
+Rate Synchronization: When logging hours in the Time Tracking module, selecting a client automatically pulls that client’s individual "Hourly Rate" and "Currency" from their profile to calculate the entry's value.
+Utilization Tracking: Actual hours logged are synchronized back to the Tasks module, updating the "Utilization" progress bars (e.g., "4.5 / 10h logged"). This gives the firm real-time visibility into whether a project is exceeding its estimated resource budget.
+4. The "Intelligence Aggregate" (All Data ➔ Dashboard/Audit)
+The firm’s performance metrics are derived from the synchronization of all other modules.
+Audit Synchronization: Every form submission across the portal—whether it's a task update or a CRM note—pushes data into the Audit Trail. This trail acts as the primary source for the Coordination Stream on the dashboard.
+KPI Calculation: The "Strategic Metrics" widget on the dashboard performs live calculations across the datasets:
+Retention Rate: Synced from the Client Registry.
+Response Latency: Calculated by measuring the time between a task's "Created" timestamp and its "In-Progress" timestamp in the Audit Logs.
+5. Fiscal Synchronization (Time Tracking ➔ Invoices)
+This final link ensures the firm’s solvency.
+The Link: The Billing module identifies "Submitted" time entries associated with a client.
+The Workflow: During the invoicing process, the system aggregates all billable hours for a specific clientId from the Time Tracking registry, ensuring that the final invoice accurately reflects the professional services delivered during the period.

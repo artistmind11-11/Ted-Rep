@@ -5,8 +5,9 @@ import { usePortalData, InvoiceStatus } from "@/lib/portal-data";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie,
 } from "recharts";
-import { Receipt, CheckCircle2, MessageSquare, Download, Eye, ShieldOff } from "lucide-react";
+import { CheckCircle2, MessageSquare, Download, Eye, ShieldOff, Plus } from "lucide-react";
 import { MONTHLY_DATA } from "@/lib/portal-data";
+import { GenerateInvoiceModal, ToolbarButton } from "@/components/portal-forms";
 
 const RETAINER = 160;
 const HOURS_USED = 124;
@@ -17,6 +18,7 @@ const STATUS_STYLE: Record<InvoiceStatus, string> = {
   Upcoming: "text-amber-400 bg-amber-400/10 border-amber-400/20",
   Paid: "text-green-400 bg-green-400/10 border-green-400/20",
   Overdue: "text-red-400 bg-red-400/10 border-red-400/20",
+  Disputed: "text-orange-400 bg-orange-400/10 border-orange-400/20",
 };
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number; dataKey: string }[]; label?: string }) => {
@@ -36,6 +38,7 @@ export default function Billing() {
   const { invoices, clients, updateInvoiceStatus } = usePortalData();
   const [disputeId, setDisputeId] = useState<string | null>(null);
   const [disputeNote, setDisputeNote] = useState("");
+  const [showGenerate, setShowGenerate] = useState(false);
 
   if (!can("view_billing_own") && !can("view_billing_all")) {
     return (
@@ -60,10 +63,16 @@ export default function Billing() {
 
   return (
     <div>
-      <div className="mb-6">
-        <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Financial Suite</p>
-        <h1 className="font-serif text-2xl text-[#F8F8F6]">Billing & Invoicing</h1>
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div>
+          <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Financial Suite</p>
+          <h1 className="font-serif text-2xl text-[#F8F8F6]">Billing & Invoicing</h1>
+        </div>
+        {can("view_billing_all") && (
+          <ToolbarButton onClick={() => setShowGenerate(true)} icon={Plus} label="Generate Invoice" dataTestid="open-generate-invoice" />
+        )}
       </div>
+      <GenerateInvoiceModal open={showGenerate} onClose={() => setShowGenerate(false)} />
 
       {can("view_billing_all") && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -175,7 +184,7 @@ export default function Billing() {
                         )}
                         {can("dispute_invoice") && ["Upcoming", "Draft"].includes(inv.status) && (
                           <>
-                            <button onClick={() => updateInvoiceStatus(inv.id, "Paid")}
+                            <button onClick={() => updateInvoiceStatus(user?.name ?? "Client", inv.id, "Paid")}
                               data-testid={`button-approve-invoice-${inv.id}`}
                               className="text-green-400 text-xs hover:text-green-300 transition-colors flex items-center gap-1">
                               <CheckCircle2 size={12} /> Approve
@@ -208,7 +217,7 @@ export default function Billing() {
               placeholder="Describe your dispute…" rows={4}
               className="w-full bg-[#0F0F0F] border border-[#2A2A2A] rounded-sm px-3 py-2 text-[#F8F8F6] text-sm placeholder-[#333] focus:border-[#9B8B5F] focus:outline-none resize-none mb-4" />
             <div className="flex gap-3">
-              <button onClick={() => { updateInvoiceStatus(disputeId, "Overdue", disputeNote); setDisputeId(null); setDisputeNote(""); }}
+              <button onClick={() => { updateInvoiceStatus(user?.name ?? "Client", disputeId, "Disputed", disputeNote); setDisputeId(null); setDisputeNote(""); }}
                 className="flex-1 py-2 text-sm bg-red-400/10 text-red-400 border border-red-400/20 rounded-sm hover:bg-red-400/20 transition-colors">
                 Submit Dispute
               </button>

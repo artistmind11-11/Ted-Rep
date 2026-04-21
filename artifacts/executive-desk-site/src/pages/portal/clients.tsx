@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { usePortalAuth } from "@/lib/portal-auth";
 import { usePortalData, Client, ClientTier } from "@/lib/portal-data";
-import { CheckCircle2, Circle, ShieldOff } from "lucide-react";
+import { CheckCircle2, Circle, ShieldOff, Plus } from "lucide-react";
+import { AddClientModal, ToolbarButton } from "@/components/portal-forms";
 
 const TIER_STYLE: Record<ClientTier, string> = {
   "Tier I C-Suite": "text-[#9B8B5F] bg-[#9B8B5F]/10 border-[#9B8B5F]/20",
@@ -26,9 +27,10 @@ function OnboardingProgress({ steps }: { steps: Client["onboarding"] }) {
 }
 
 export default function Clients() {
-  const { can } = usePortalAuth();
-  const { clients, team } = usePortalData();
+  const { user, can } = usePortalAuth();
+  const { clients, team, toggleOnboarding } = usePortalData();
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
 
   if (!can("view_all_clients")) {
     return (
@@ -46,10 +48,16 @@ export default function Clients() {
 
   return (
     <div>
-      <div className="mb-6">
-        <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Principal Roster</p>
-        <h1 className="font-serif text-2xl text-[#F8F8F6]">Client Management</h1>
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div>
+          <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Principal Roster</p>
+          <h1 className="font-serif text-2xl text-[#F8F8F6]">Client Management</h1>
+        </div>
+        {can("manage_users") && (
+          <ToolbarButton onClick={() => setShowAdd(true)} icon={Plus} label="Add Client" dataTestid="open-add-client" />
+        )}
       </div>
+      <AddClientModal open={showAdd} onClose={() => setShowAdd(false)} />
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -139,20 +147,39 @@ export default function Clients() {
                 <div className="mb-3"><OnboardingProgress steps={client.onboarding} /></div>
                 <div className="space-y-2">
                   {client.onboarding.map((step) => (
-                    <div key={step.label} className="flex items-center gap-2 text-sm">
+                    <button key={step.label}
+                      onClick={() => can("manage_users") && toggleOnboarding(user?.name ?? "Principal", client.id, step.label)}
+                      disabled={!can("manage_users")}
+                      data-testid={`onboard-${client.id}-${step.label}`}
+                      className={`flex items-center gap-2 text-sm w-full text-left ${can("manage_users") ? "hover:bg-[#1A1A1A] cursor-pointer" : "cursor-default"} px-1 py-0.5 rounded-sm transition-colors`}>
                       {step.done ? <CheckCircle2 size={13} className="text-green-400 flex-shrink-0" /> : <Circle size={13} className="text-[#333] flex-shrink-0" />}
                       <span className={step.done ? "text-[#888]" : "text-[#444]"}>{step.label}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-[#9B8B5F] text-xs uppercase tracking-wider mb-3">Financials</p>
+                <p className="text-[#9B8B5F] text-xs uppercase tracking-wider mb-3">Engagement Terms</p>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-[#444]">Total Invoiced</span><span className="text-[#F8F8F6]">AED {client.totalInvoiced.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span className="text-[#444]">Outstanding</span><span className={client.pendingAmount > 0 ? "text-amber-400" : "text-green-400"}>AED {client.pendingAmount.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span className="text-[#444]">Monthly Retainer</span><span className="text-[#9B8B5F]">AED {client.retainerPerMonth.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Service Plan</span><span className="text-[#F8F8F6]">{client.servicePlan}</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Hourly Rate</span><span className="text-[#F8F8F6] font-mono">{client.currency} {client.hourlyRate}/h</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Retainer / mo</span><span className="text-[#9B8B5F] font-mono">{client.currency} {client.retainerPerMonth.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Retainer Hours</span><span className="text-[#F8F8F6] font-mono">{client.retainerHours}h</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Total Invoiced</span><span className="text-[#F8F8F6] font-mono">{client.currency} {client.totalInvoiced.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-[#444]">Outstanding</span><span className={`font-mono ${client.pendingAmount > 0 ? "text-amber-400" : "text-green-400"}`}>{client.currency} {client.pendingAmount.toLocaleString()}</span></div>
                 </div>
+                {client.commsProtocol && (
+                  <div className="mt-3 pt-3 border-t border-[#1F1F1F]">
+                    <p className="text-[#444] text-xs mb-1">Comms Protocol</p>
+                    <p className="text-[#777] text-xs">{client.commsProtocol}</p>
+                  </div>
+                )}
+                {client.notes && (
+                  <div className="mt-3 pt-3 border-t border-[#1F1F1F]">
+                    <p className="text-[#444] text-xs mb-1">Strategic Notes</p>
+                    <p className="text-[#777] text-xs italic leading-relaxed">{client.notes}</p>
+                  </div>
+                )}
               </div>
               <div>
                 <p className="text-[#9B8B5F] text-xs uppercase tracking-wider mb-3">Assigned Team</p>
