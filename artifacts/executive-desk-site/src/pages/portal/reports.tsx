@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { usePortalAuth } from "@/lib/portal-auth";
-import { MONTHLY_DATA } from "@/lib/portal-data";
+import { MONTHLY_DATA, GOAL_PROGRESS, RADAR_DATA } from "@/lib/portal-data";
 import {
   ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis,
 } from "recharts";
 import { ShieldOff } from "lucide-react";
 
@@ -73,6 +74,38 @@ export default function Reports() {
           </ComposedChart>
         </ResponsiveContainer>
       </motion.div>
+
+      {/* Strategic Goal Progress + Governance Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="lg:col-span-2 bg-[#141414] border border-[#222] rounded-sm p-5">
+          <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Strategic Goal Progress</p>
+          <p className="text-[#F8F8F6] font-serif text-lg mb-5">Engagement Objectives</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={GOAL_PROGRESS} barCategoryGap="30%">
+              <XAxis dataKey="goal" tick={{ fill: "#555", fontSize: 10, fontFamily: "Inter" }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 110]} tick={{ fill: "#555", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+              <Tooltip contentStyle={{ background: "#1A1A1A", border: "1px solid #2A2A2A", borderRadius: 2, fontSize: 12 }}
+                labelStyle={{ color: "#9B8B5F" }} itemStyle={{ color: "#F8F8F6" }} cursor={{ fill: "rgba(155,139,95,0.04)" }} />
+              <Bar dataKey="pct" radius={[2, 2, 0, 0]}>
+                {GOAL_PROGRESS.map((_, i) => <Cell key={i} fill={i < 2 ? GOLD : "rgba(155,139,95,0.38)"} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="bg-[#141414] border border-[#222] rounded-sm p-5">
+          <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Governance Health</p>
+          <p className="text-[#F8F8F6] font-serif text-lg mb-3">Structure Maturity</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <RadarChart data={RADAR_DATA} cx="50%" cy="50%" outerRadius="70%">
+              <PolarGrid stroke="#1F1F1F" />
+              <PolarAngleAxis dataKey="axis" tick={{ fill: "rgba(248,248,246,0.32)", fontSize: 10, fontFamily: "Inter" }} />
+              <Radar dataKey="score" stroke={GOLD} fill={GOLD} fillOpacity={0.06} strokeWidth={1.5} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
 
       {/* Performance Metrics — typography only */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}

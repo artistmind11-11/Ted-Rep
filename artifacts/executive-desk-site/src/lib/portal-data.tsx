@@ -28,6 +28,8 @@ export interface TimeEntry {
   currency: string;
   value: number;
   disputeReason?: string;
+  wasDisputed?: boolean;
+  resolutionNote?: string;
 }
 
 export interface Task {
@@ -43,6 +45,7 @@ export interface Task {
   estimatedHours: number;
   actualHours: number;
   disputeReason?: string;
+  wasDisputed?: boolean;
 }
 
 export interface ApprovalItem {
@@ -52,6 +55,13 @@ export interface ApprovalItem {
   subtitle: string;
   status: ApprovalStatus;
   date: string;
+  requestedBy?: string;
+  linkedClientId?: string;
+  linkedTaskId?: string;
+  linkedTimeEntryId?: string;
+  linkedInvoiceId?: string;
+  rejectionReason?: string;
+  requestedAction?: "delete_invoice" | "general";
 }
 
 export interface Invoice {
@@ -66,6 +76,7 @@ export interface Invoice {
   dueDate: string;
   disputeNote?: string;
   timeEntryIds?: string[];
+  discount?: number;
 }
 
 export interface Client {
@@ -90,6 +101,8 @@ export interface Client {
   onboarding: { label: string; done: boolean }[];
   notes: string;
   commsProtocol: string;
+  commsChannel?: string;
+  commsFrequency?: string;
 }
 
 export interface Lead {
@@ -288,11 +301,18 @@ interface DataContextType {
   toggleOnboarding: (actor: string, clientId: string, label: string) => void;
 
   addTimeEntry:    (actor: string, e: Omit<TimeEntry, "id" | "value" | "rate" | "currency">) => TimeEntry;
-  updateTimeStatus:(actor: string, id: string, status: TimeStatus, reason?: string) => void;
+  updateTimeStatus:(actor: string, id: string, status: TimeStatus, reason?: string, resolutionNote?: string) => void;
 
-  updateApproval:     (actor: string, id: string, status: "Approved" | "Rejected") => void;
+  addApproval:        (actor: string, a: Omit<ApprovalItem, "id" | "date" | "status"> & { status?: ApprovalStatus }) => ApprovalItem;
+  updateApproval:     (actor: string, id: string, status: "Approved" | "Rejected", rejectionReason?: string) => void;
   updateInvoiceStatus:(actor: string, id: string, status: InvoiceStatus, note?: string) => void;
+  editInvoice:        (actor: string, id: string, patch: Partial<Pick<Invoice, "amount" | "discount" | "description" | "period" | "dueDate">>) => void;
+  deleteInvoice:      (actor: string, id: string) => void;
   generateInvoiceFromTime: (actor: string, clientId: string, period: string, description: string) => Invoice | null;
+
+  addTeamMember:      (actor: string, m: Omit<TeamMember, "id" | "active">) => TeamMember;
+  removeTeamMember:   (actor: string, id: string) => void;
+  updateTeamAssignment: (actor: string, id: string, assignedClients: string[]) => void;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -308,6 +328,7 @@ export function PortalDataProvider({ children }: { children: ReactNode }) {
   const [clients, setClients]         = useState<Client[]>(CLIENTS);
   const [leads, setLeads]             = useState<Lead[]>(LEADS);
   const [crmActivities, setCRMAct]    = useState<CRMActivity[]>(CRM_ACTIVITIES);
+  const [team, setTeam]               = useState<TeamMember[]>(TEAM);
   const [auditLog, setAuditLog]       = useState<AuditEntry[]>(AUDIT_LOG);
 
   const addAuditEntry = useCallback((entry: Omit<AuditEntry, "id" | "timestamp"> & { timestamp?: string }) =>
@@ -425,17 +446,39 @@ export function PortalDataProvider({ children }: { children: ReactNode }) {
     return entry;
   }, [clients, pulse]);
 
-  const updateTimeStatus = useCallback((actor: string, id: string, status: TimeStatus, reason?: string) => {
-    setTimeEntries((prev) => prev.map((e) => e.id === id ? { ...e, status, ...(reason ? { disputeReason: reason } : {}) } : e));
+  const updateTimeStatus = useCallback((actor: string, id: string, status: TimeStatus, reason?: string, resolutionNote?: string) => {
+    setTimeEntries((prev) => prev.map((e) => {
+      if (e.id !== id) return e;
+      const next: TimeEntry = { ...e, status };
+      if (status === "Disputed") { next.disputeReason = reason; next.wasDisputed = true; }
+      if (resolutionNote) { next.resolutionNote = resolutionNote; next.disputeReason = undefined; }
+      return next;
+    }));
     const e = timeEntries.find((x) => x.id === id);
-    pulse(actor, `Time Entry ${status}`, `${e?.hours ?? "?"}h ${e?.project ?? ""} → ${status}${reason ? ` — ${reason}` : ""}`, "Time", status === "Disputed");
+    pulse(actor, `Time Entry ${status}`, `${e?.hours ?? "?"}h ${e?.project ?? ""} → ${status}${reason ? ` — ${reason}` : ""}${resolutionNote ? ` — Resolved: ${resolutionNote}` : ""}`, "Time", status === "Disputed");
   }, [timeEntries, pulse]);
 
   // ─── Approvals ───
-  const updateApproval = useCallback((actor: string, id: string, status: "Approved" | "Rejected") => {
-    setApprovals((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
+  const addApproval = useCallback((actor: string, a: Omit<ApprovalItem, "id" | "date" | "status"> & { status?: ApprovalStatus }) => {
+    const id = `ap${Date.now()}`;
+    const date = new Date().toISOString().slice(0, 10);
+    const item: ApprovalItem = { id, date, status: a.status ?? "Pending", type: a.type, title: a.title, subtitle: a.subtitle,
+      requestedBy: a.requestedBy ?? actor, linkedClientId: a.linkedClientId, linkedTaskId: a.linkedTaskId,
+      linkedTimeEntryId: a.linkedTimeEntryId, linkedInvoiceId: a.linkedInvoiceId, requestedAction: a.requestedAction };
+    setApprovals((prev) => [item, ...prev]);
+    pulse(actor, "Approval Requested", `${a.title} — requested by ${actor}`, "Approvals", true);
+    return item;
+  }, [pulse]);
+
+  const updateApproval = useCallback((actor: string, id: string, status: "Approved" | "Rejected", rejectionReason?: string) => {
+    setApprovals((prev) => prev.map((a) => a.id === id ? { ...a, status, ...(rejectionReason ? { rejectionReason } : {}) } : a));
     const a = approvals.find((x) => x.id === id);
-    pulse(actor, `Approval ${status}`, `${a?.title ?? id} → ${status}`, "Approvals", true);
+    // If approving a delete-invoice request, perform the deletion
+    if (status === "Approved" && a?.requestedAction === "delete_invoice" && a.linkedInvoiceId) {
+      setInvoices((prev) => prev.filter((inv) => inv.id !== a.linkedInvoiceId));
+      pulse(actor, "Invoice Deleted (Approved)", `${a.linkedInvoiceId.toUpperCase()} removed via approval ${id}`, "Financial", true);
+    }
+    pulse(actor, `Approval ${status}`, `${a?.title ?? id} → ${status}${rejectionReason ? ` — ${rejectionReason}` : ""}`, "Approvals", true);
   }, [approvals, pulse]);
 
   // ─── Invoices ───
@@ -443,11 +486,43 @@ export function PortalDataProvider({ children }: { children: ReactNode }) {
     setInvoices((prev) => prev.map((inv) => inv.id === id ? { ...inv, status, disputeNote: note } : inv));
     const inv = invoices.find((x) => x.id === id);
     pulse(actor, `Invoice ${status}`, `${inv?.id.toUpperCase() ?? id} — ${inv ? `AED ${inv.amount.toLocaleString()}` : ""} → ${status}${note ? ` — ${note}` : ""}`, "Financial", true);
-    // mark linked time entries as Invoiced/Paid where appropriate
     if ((status === "Upcoming" || status === "Paid") && inv?.timeEntryIds?.length) {
       setTimeEntries((prev) => prev.map((te) => inv.timeEntryIds!.includes(te.id) ? { ...te, status: status === "Paid" ? "Paid" : "Invoiced" } : te));
     }
   }, [invoices, pulse]);
+
+  const editInvoice = useCallback((actor: string, id: string, patch: Partial<Pick<Invoice, "amount" | "discount" | "description" | "period" | "dueDate">>) => {
+    setInvoices((prev) => prev.map((inv) => inv.id === id ? { ...inv, ...patch } : inv));
+    const inv = invoices.find((x) => x.id === id);
+    pulse(actor, "Invoice Edited", `${inv?.id.toUpperCase() ?? id} — ${Object.keys(patch).join(", ")} updated`, "Financial", true);
+  }, [invoices, pulse]);
+
+  const deleteInvoice = useCallback((actor: string, id: string) => {
+    const inv = invoices.find((x) => x.id === id);
+    setInvoices((prev) => prev.filter((x) => x.id !== id));
+    pulse(actor, "Invoice Deleted", `${inv?.id.toUpperCase() ?? id} — ${inv ? `AED ${inv.amount.toLocaleString()}` : ""} removed`, "Financial", true);
+  }, [invoices, pulse]);
+
+  // ─── Team ───
+  const addTeamMember = useCallback((actor: string, m: Omit<TeamMember, "id" | "active">) => {
+    const id = `u${Date.now()}`;
+    const member: TeamMember = { ...m, id, active: true };
+    setTeam((prev) => [...prev, member]);
+    pulse(actor, "Team Member Added", `${m.name} (${m.role}) — assigned to ${m.assignedClients.length} client(s)`, "Portal Access", true);
+    return member;
+  }, [pulse]);
+
+  const removeTeamMember = useCallback((actor: string, id: string) => {
+    const m = team.find((x) => x.id === id);
+    setTeam((prev) => prev.filter((x) => x.id !== id));
+    pulse(actor, "Team Member Removed", `${m?.name ?? id} (${m?.role ?? "—"}) removed from roster`, "Portal Access", true);
+  }, [team, pulse]);
+
+  const updateTeamAssignment = useCallback((actor: string, id: string, assignedClients: string[]) => {
+    setTeam((prev) => prev.map((m) => m.id === id ? { ...m, assignedClients } : m));
+    const m = team.find((x) => x.id === id);
+    pulse(actor, "Client Assignment Updated", `${m?.name ?? id} → ${assignedClients.length} client(s)`, "Portal Access");
+  }, [team, pulse]);
 
   const generateInvoiceFromTime = useCallback((actor: string, clientId: string, period: string, description: string) => {
     const cl = clients.find((c) => c.id === clientId);
@@ -473,17 +548,19 @@ export function PortalDataProvider({ children }: { children: ReactNode }) {
   }, [clients, timeEntries, pulse]);
 
   const value: DataContextType = useMemo(() => ({
-    timeEntries, tasks, approvals, invoices, clients, leads, crmActivities, team: TEAM, auditLog,
+    timeEntries, tasks, approvals, invoices, clients, leads, crmActivities, team, auditLog,
     addAuditEntry, pulse,
     addTask, updateTaskStatus, updateTaskHours,
     addLead, updateLeadStage, addCRMActivity,
     addClient, promoteLeadHint, toggleOnboarding,
     addTimeEntry, updateTimeStatus,
-    updateApproval, updateInvoiceStatus, generateInvoiceFromTime,
-  }), [timeEntries, tasks, approvals, invoices, clients, leads, crmActivities, auditLog,
+    addApproval, updateApproval, updateInvoiceStatus, editInvoice, deleteInvoice, generateInvoiceFromTime,
+    addTeamMember, removeTeamMember, updateTeamAssignment,
+  }), [timeEntries, tasks, approvals, invoices, clients, leads, crmActivities, team, auditLog,
        addAuditEntry, pulse, addTask, updateTaskStatus, updateTaskHours, addLead, updateLeadStage,
        addCRMActivity, addClient, promoteLeadHint, toggleOnboarding, addTimeEntry, updateTimeStatus,
-       updateApproval, updateInvoiceStatus, generateInvoiceFromTime]);
+       addApproval, updateApproval, updateInvoiceStatus, editInvoice, deleteInvoice, generateInvoiceFromTime,
+       addTeamMember, removeTeamMember, updateTeamAssignment]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

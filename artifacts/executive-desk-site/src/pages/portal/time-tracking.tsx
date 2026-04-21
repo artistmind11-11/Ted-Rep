@@ -5,8 +5,8 @@ import { usePortalData, TimeStatus, TIME_CATEGORIES } from "@/lib/portal-data";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Clock, TrendingUp, CheckCircle2, ShieldOff, Plus } from "lucide-react";
-import { LogTimeEntryModal, ToolbarButton } from "@/components/portal-forms";
+import { Clock, TrendingUp, CheckCircle2, ShieldOff, Plus, AlertCircle, Gavel } from "lucide-react";
+import { LogTimeEntryModal, ResolveDisputeModal, ToolbarButton } from "@/components/portal-forms";
 
 const GOLD_OPACITIES = [0.88, 0.75, 0.62, 0.50, 0.38, 0.25, 0.12];
 const STATUS_COLORS: Record<TimeStatus, string> = {
@@ -22,18 +22,16 @@ const HOURS_USED = 124;
 
 export default function TimeTracking() {
   const { user, can } = usePortalAuth();
-  const { timeEntries, updateTimeStatus } = usePortalData();
+  const { timeEntries, updateTimeStatus, clients, team } = usePortalData();
   const [filterStatus, setFilterStatus] = useState<TimeStatus | "All">("All");
   const [showLog, setShowLog] = useState(false);
+  const [resolveTarget, setResolveTarget] = useState<{ id: string; reason?: string } | null>(null);
 
   const myEntries = can("view_tasks_all")
     ? timeEntries
     : timeEntries.filter((e) => e.clientId === user?.clientId || e.loggedBy === user?.id);
 
   const filtered = filterStatus === "All" ? myEntries : myEntries.filter((e) => e.status === filterStatus);
-  const totalHours = myEntries.reduce((s, e) => s + e.hours, 0);
-  const approvedHours = myEntries.filter((e) => e.status === "Approved").reduce((s, e) => s + e.hours, 0);
-  const submittedHours = myEntries.filter((e) => e.status === "Submitted").reduce((s, e) => s + e.hours, 0);
 
   const donutData = TIME_CATEGORIES;
   const maxHours = Math.max(...TIME_CATEGORIES.map((c) => c.hours));
@@ -71,6 +69,8 @@ export default function TimeTracking() {
         )}
       </div>
       <LogTimeEntryModal open={showLog} onClose={() => setShowLog(false)} />
+      <ResolveDisputeModal open={!!resolveTarget} onClose={() => setResolveTarget(null)}
+        entryId={resolveTarget?.id ?? null} currentReason={resolveTarget?.reason} />
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -124,7 +124,7 @@ export default function TimeTracking() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
           className="lg:col-span-2 bg-[#141414] border border-[#222] rounded-sm p-5">
           <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Project Breakdown</p>
-          <p className="text-[#F8F8F6] font-serif text-lg mb-5">Hours by Stream</p>
+          <p className="text-[#F8F8F6] font-serif text-lg mb-5">Hours by Type</p>
           <div className="space-y-4">
             {TIME_CATEGORIES.map((cat) => {
               const pct = (cat.hours / maxHours) * 100;
@@ -166,36 +166,66 @@ export default function TimeTracking() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#1A1A1A]">
-                {["Date", "Project", "Description", "Hours", "Status"].map((h) => (
+                {["Date", "Type", "Client", "Team Member", "Description", "Hours", "Status"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[#444] text-xs uppercase tracking-wider font-normal">{h}</th>
                 ))}
                 {can("approve_tasks") && <th className="px-5 py-3 text-[#444] text-xs uppercase tracking-wider font-normal">Action</th>}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((entry) => (
-                <tr key={entry.id} className="border-b border-[#1A1A1A] hover:bg-[rgba(255,255,255,0.01)] transition-colors" data-testid={`time-row-${entry.id}`}>
-                  <td className="px-5 py-3 text-[#555] text-xs">{entry.date}</td>
-                  <td className="px-5 py-3 text-[#888] text-xs">{entry.project}</td>
-                  <td className="px-5 py-3 text-[#F8F8F6] text-sm">{entry.description}</td>
-                  <td className="px-5 py-3 text-[#9B8B5F] font-mono text-sm">{entry.hours}h</td>
-                  <td className="px-5 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-sm border ${STATUS_COLORS[entry.status]}`}>{entry.status}</span>
-                  </td>
-                  {can("approve_tasks") && (
-                    <td className="px-5 py-3">
-                      {entry.status === "Submitted" && (
-                        <div className="flex gap-2">
-                          <button onClick={() => updateTimeStatus(user?.name ?? "User", entry.id, "Approved")}
-                            className="text-xs text-green-400 hover:text-green-300 transition-colors">Approve</button>
-                          <button onClick={() => { const r = window.prompt("Reason for dispute?") || undefined; updateTimeStatus(user?.name ?? "User", entry.id, "Disputed", r); }}
-                            className="text-xs text-red-400 hover:text-red-300 transition-colors">Dispute</button>
-                        </div>
+              {filtered.map((entry) => {
+                const cl = clients.find((c) => c.id === entry.clientId);
+                const tm = team.find((m) => m.id === entry.loggedBy);
+                return (
+                  <tr key={entry.id} className="border-b border-[#1A1A1A] hover:bg-[rgba(255,255,255,0.01)] transition-colors" data-testid={`time-row-${entry.id}`}>
+                    <td className="px-5 py-3 text-[#555] text-xs">{entry.date}</td>
+                    <td className="px-5 py-3 text-[#888] text-xs">{entry.project}</td>
+                    <td className="px-5 py-3 text-[#9B8B5F] text-xs font-mono">{cl?.code ?? "—"}</td>
+                    <td className="px-5 py-3 text-[#888] text-xs">{tm?.name ?? entry.loggedBy}</td>
+                    <td className="px-5 py-3 text-[#F8F8F6] text-sm max-w-[280px]">
+                      <p className="truncate">{entry.description}</p>
+                      {entry.status === "Disputed" && entry.disputeReason && (
+                        <p className="text-rose-300/70 text-xs mt-1 italic">⚠ {entry.disputeReason}</p>
+                      )}
+                      {entry.resolutionNote && (
+                        <p className="text-emerald-300/70 text-xs mt-1 italic">✓ Resolved: {entry.resolutionNote}</p>
                       )}
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-5 py-3 text-[#9B8B5F] font-mono text-sm">{entry.hours}h</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs px-2 py-0.5 rounded-sm border ${STATUS_COLORS[entry.status]}`}>{entry.status}</span>
+                        {entry.wasDisputed && entry.status !== "Disputed" && (
+                          <span className="text-[9px] text-rose-300/60 flex items-center gap-0.5" title="Previously disputed">
+                            <AlertCircle size={10} /> prev. disputed
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    {can("approve_tasks") && (
+                      <td className="px-5 py-3">
+                        {entry.status === "Submitted" && (
+                          <div className="flex gap-2">
+                            <button onClick={() => updateTimeStatus(user?.name ?? "User", entry.id, "Approved")}
+                              data-testid={`approve-time-${entry.id}`}
+                              className="text-xs text-green-400 hover:text-green-300 transition-colors">Approve</button>
+                            <button onClick={() => { const r = window.prompt("Reason for dispute?") || undefined; updateTimeStatus(user?.name ?? "User", entry.id, "Disputed", r); }}
+                              data-testid={`dispute-time-${entry.id}`}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors">Dispute</button>
+                          </div>
+                        )}
+                        {entry.status === "Disputed" && (
+                          <button onClick={() => setResolveTarget({ id: entry.id, reason: entry.disputeReason })}
+                            data-testid={`resolve-time-${entry.id}`}
+                            className="text-xs text-[#9B8B5F] hover:text-[#B8A870] transition-colors flex items-center gap-1">
+                            <Gavel size={11} /> Resolve
+                          </button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

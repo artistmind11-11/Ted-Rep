@@ -1,17 +1,13 @@
 import { motion } from "framer-motion";
 import { usePortalAuth } from "@/lib/portal-auth";
-import { usePortalData, GOAL_PROGRESS, RADAR_DATA, MONTHLY_DATA } from "@/lib/portal-data";
+import { usePortalData, MONTHLY_DATA } from "@/lib/portal-data";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  LineChart, Line, Area, AreaChart,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart,
 } from "recharts";
 import { Users, CheckSquare, Clock, DollarSign, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 
 const GOLD = "#9B8B5F";
-const GOLD_DIM = "rgba(155,139,95,0.38)";
-const DARK_BG = "#1A1A1A";
 
 const fadeUp = { hidden: { opacity: 0, y: 14 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.45, delay: i * 0.07 } }) };
 
@@ -38,25 +34,9 @@ const PRIORITY_DOT: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   "In Progress": "text-[#9B8B5F] bg-[#9B8B5F]/10",
-  "To Do": "text-amber-400 bg-amber-400/10",
+  Pending: "text-amber-400 bg-amber-400/10",
   Completed: "text-green-400 bg-green-400/10",
-  Overdue: "text-red-400 bg-red-400/10",
-};
-
-const CustomBar = (props: { x?: number; y?: number; width?: number; height?: number; index?: number }) => {
-  const { x = 0, y = 0, width = 0, height = 0, index = 0 } = props;
-  const isDone = index < 2;
-  return <rect x={x} y={y} width={width} height={height} fill={isDone ? GOLD : GOLD_DIM} rx={1} />;
-};
-
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-sm px-3 py-2">
-      <p className="text-[#9B8B5F] text-xs font-medium">{label}</p>
-      <p className="text-[#F8F8F6] text-sm">{payload[0]?.value}%</p>
-    </div>
-  );
+  Disputed: "text-red-400 bg-red-400/10",
 };
 
 export default function Dashboard() {
@@ -112,42 +92,6 @@ export default function Dashboard() {
               transition={{ duration: 1, ease: "easeOut" }} className="h-full bg-[#9B8B5F] rounded-full" />
           </div>
         </motion.div>
-      )}
-
-      {/* Charts grid */}
-      {can("view_kpis") && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Goal Progress Bar Chart */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}
-            className="lg:col-span-2 bg-[#141414] border border-[#222] rounded-sm p-5">
-            <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Strategic Goal Progress</p>
-            <p className="text-[#F8F8F6] font-serif text-lg mb-5">Engagement Objectives</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={GOAL_PROGRESS} barCategoryGap="30%">
-                <XAxis dataKey="goal" tick={{ fill: "#555", fontSize: 10, fontFamily: "Inter" }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 110]} tick={{ fill: "#555", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(155,139,95,0.04)" }} />
-                <Bar dataKey="pct" radius={[2, 2, 0, 0]}>
-                  {GOAL_PROGRESS.map((_, i) => <Cell key={i} fill={i < 2 ? GOLD : GOLD_DIM} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </motion.div>
-
-          {/* Radar Chart */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}
-            className="bg-[#141414] border border-[#222] rounded-sm p-5">
-            <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Governance Health</p>
-            <p className="text-[#F8F8F6] font-serif text-lg mb-3">Structure Maturity</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <RadarChart data={RADAR_DATA} cx="50%" cy="50%" outerRadius="70%">
-                <PolarGrid stroke="#1F1F1F" />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: "rgba(248,248,246,0.32)", fontSize: 10, fontFamily: "Inter" }} />
-                <Radar dataKey="score" stroke={GOLD} fill={GOLD} fillOpacity={0.06} strokeWidth={1.5} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </motion.div>
-        </div>
       )}
 
       {/* Activity Chart + Tasks */}

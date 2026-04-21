@@ -168,21 +168,23 @@ export default function Profile() {
             </motion.div>
           )}
 
-          {/* Permissions */}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="bg-[#141414] border border-[#222] rounded-sm p-5">
-            <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-4">Access Level — {cfg.label}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {PERMISSIONS_LIST.map(({ label, granted }) => (
-                <div key={label} className="flex items-center gap-2 text-xs">
-                  {granted
-                    ? <CheckCircle2 size={12} className="text-green-400 flex-shrink-0" />
-                    : <Circle size={12} className="text-[#1F1F1F] flex-shrink-0" />}
-                  <span className={granted ? "text-[#888]" : "text-[#2A2A2A]"}>{label}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          {/* Permissions — hidden for clients */}
+          {user.role !== "client" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+              className="bg-[#141414] border border-[#222] rounded-sm p-5">
+              <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-4">Access Level — {cfg.label}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {PERMISSIONS_LIST.map(({ label, granted }) => (
+                  <div key={label} className="flex items-center gap-2 text-xs">
+                    {granted
+                      ? <CheckCircle2 size={12} className="text-green-400 flex-shrink-0" />
+                      : <Circle size={12} className="text-[#1F1F1F] flex-shrink-0" />}
+                    <span className={granted ? "text-[#888]" : "text-[#2A2A2A]"}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

@@ -1,10 +1,11 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, useMemo, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import {
   usePortalData, TaskPriority, TaskStatus, LeadStage, InteractionKind, ServicePlan, ClientTier,
+  ApprovalType, Invoice,
 } from "@/lib/portal-data";
-import { usePortalAuth } from "@/lib/portal-auth";
+import { usePortalAuth, UserRole } from "@/lib/portal-auth";
 
 // ─── Shared Modal Shell ─────────────────────────────────────────────────────
 
@@ -261,8 +262,11 @@ export function LogInteractionModal({ open, onClose, defaultLeadId }: { open: bo
 
 export function AddClientModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = usePortalAuth();
-  const { leads, addClient, promoteLeadHint, updateLeadStage } = usePortalData();
-  const activeLeads = leads.filter((l) => l.stage !== "Lost" && l.stage !== "Won");
+  const { leads, addClient, promoteLeadHint } = usePortalData();
+  const wonLeads = leads.filter((l) => l.stage === "Won");
+
+  const COMMS_CHANNELS = ["WhatsApp", "Email", "Phone Call", "Slack", "In-Person", "Other"];
+  const COMMS_FREQUENCIES = ["Daily", "Weekly", "Bi-Weekly", "Monthly", "As Needed"];
 
   const [pullLeadId, setPullLeadId] = useState("");
   const [company, setCompany] = useState("");
@@ -275,7 +279,9 @@ export function AddClientModal({ open, onClose }: { open: boolean; onClose: () =
   const [hourlyRate, setHourlyRate] = useState(550);
   const [retainerPerMonth, setRetainerPerMonth] = useState(35000);
   const [retainerHours, setRetainerHours] = useState(60);
-  const [commsProtocol, setCommsProtocol] = useState("Slack daily, weekly recap email");
+  const [commsChannel, setCommsChannel] = useState("WhatsApp");
+  const [commsChannelOther, setCommsChannelOther] = useState("");
+  const [commsFrequency, setCommsFrequency] = useState("Weekly");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -283,7 +289,7 @@ export function AddClientModal({ open, onClose }: { open: boolean; onClose: () =
       setPullLeadId(""); setCompany(""); setName(""); setEmail(""); setSector("Family Office");
       setCountry("UAE"); setTier("Tier I C-Suite"); setServicePlan("Professional");
       setHourlyRate(550); setRetainerPerMonth(35000); setRetainerHours(60);
-      setCommsProtocol("Slack daily, weekly recap email"); setNotes("");
+      setCommsChannel("WhatsApp"); setCommsChannelOther(""); setCommsFrequency("Weekly"); setNotes("");
     }
   }, [open]);
 
@@ -301,28 +307,34 @@ export function AddClientModal({ open, onClose }: { open: boolean; onClose: () =
 
   const submit = () => {
     if (!company.trim() || !name.trim() || !user) return;
+    const channelLabel = commsChannel === "Other" && commsChannelOther.trim() ? commsChannelOther.trim() : commsChannel;
     addClient(user.name, {
       company, name, email, sector, country, tier, servicePlan,
       hourlyRate, currency: "AED", retainerPerMonth, retainerHours,
-      commsProtocol, notes, assignedTeam: [user.id],
+      commsProtocol: `${channelLabel} — ${commsFrequency}`,
+      commsChannel: channelLabel, commsFrequency,
+      notes, assignedTeam: [user.id],
     });
-    if (pullLeadId) updateLeadStage(user.name, pullLeadId, "Won");
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Add New Client" subtitle="Promote a prospect or onboard a new institutional partner." width="max-w-2xl">
+    <Modal open={open} onClose={onClose} title="Add New Client" subtitle="Promote a Won prospect or onboard a new institutional partner." width="max-w-2xl">
       <div className="space-y-4">
-        {activeLeads.length > 0 && (
-          <div className="p-3 bg-[#9B8B5F]/5 border border-[#9B8B5F]/15 rounded-sm">
-            <label className={LABEL}>Pull from Active CRM Lead</label>
-            <select className={INPUT} value={pullLeadId} onChange={(e) => onPull(e.target.value)} data-testid="client-pull">
-              <option value="">— Manual entry —</option>
-              {activeLeads.map((l) => <option key={l.id} value={l.id}>{l.code} — {l.company} ({l.stage})</option>)}
-            </select>
-            {pullLeadId && <p className="text-[10px] text-[#9B8B5F] mt-2">↳ Form pre-filled. Lead will be marked "Won" on save.</p>}
-          </div>
-        )}
+        <div className="p-3 bg-[#9B8B5F]/5 border border-[#9B8B5F]/15 rounded-sm">
+          <label className={LABEL}>Pull from Won CRM Lead</label>
+          {wonLeads.length > 0 ? (
+            <>
+              <select className={INPUT} value={pullLeadId} onChange={(e) => onPull(e.target.value)} data-testid="client-pull">
+                <option value="">— Manual entry —</option>
+                {wonLeads.map((l) => <option key={l.id} value={l.id}>{l.code} — {l.company}</option>)}
+              </select>
+              {pullLeadId && <p className="text-[10px] text-[#9B8B5F] mt-2">↳ Form pre-filled from Won lead.</p>}
+            </>
+          ) : (
+            <p className="text-[#555] text-xs">No Won leads available. Move a CRM lead to "Won" stage first to enable promotion.</p>
+          )}
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div><label className={LABEL}>Company *</label><input className={INPUT} value={company} onChange={(e) => setCompany(e.target.value)} data-testid="client-company" /></div>
@@ -362,7 +374,23 @@ export function AddClientModal({ open, onClose }: { open: boolean; onClose: () =
           <div><label className={LABEL}>Retainer / mo (AED)</label><input type="number" className={INPUT} value={retainerPerMonth} onChange={(e) => setRetainerPerMonth(parseInt(e.target.value) || 0)} /></div>
           <div><label className={LABEL}>Retainer Hours</label><input type="number" className={INPUT} value={retainerHours} onChange={(e) => setRetainerHours(parseInt(e.target.value) || 0)} /></div>
         </div>
-        <div><label className={LABEL}>Comms Protocol</label><input className={INPUT} value={commsProtocol} onChange={(e) => setCommsProtocol(e.target.value)} placeholder="Slack daily, WhatsApp urgent only" /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Comms Channel</label>
+            <select className={INPUT} value={commsChannel} onChange={(e) => setCommsChannel(e.target.value)} data-testid="client-comms-channel">
+              {COMMS_CHANNELS.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            {commsChannel === "Other" && (
+              <input className={INPUT + " mt-2"} value={commsChannelOther} onChange={(e) => setCommsChannelOther(e.target.value)} placeholder="Specify channel…" data-testid="client-comms-other" />
+            )}
+          </div>
+          <div>
+            <label className={LABEL}>Comms Frequency</label>
+            <select className={INPUT} value={commsFrequency} onChange={(e) => setCommsFrequency(e.target.value)} data-testid="client-comms-frequency">
+              {COMMS_FREQUENCIES.map((f) => <option key={f}>{f}</option>)}
+            </select>
+          </div>
+        </div>
         <div><label className={LABEL}>Strategic Notes</label><textarea rows={2} className={INPUT + " resize-none"} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Institutional knowledge, preferences, sensitivities…" /></div>
 
         <div className={FOOT}>
@@ -398,7 +426,7 @@ export function LogTimeEntryModal({ open, onClose, defaultClientId, defaultTaskI
 
   const client = clients.find((c) => c.id === clientId);
   const value = client && billable ? Math.round(client.hourlyRate * hours) : 0;
-  const clientTasks = tasks.filter((t) => t.clientId === clientId && t.status !== "Completed");
+  const clientTasks = useMemo(() => tasks.filter((t) => t.clientId === clientId), [tasks, clientId]);
 
   const submit = () => {
     if (!clientId || !description.trim() || !user) return;
@@ -427,9 +455,9 @@ export function LogTimeEntryModal({ open, onClose, defaultClientId, defaultTaskI
         <div className="grid grid-cols-3 gap-3">
           <div><label className={LABEL}>Date</label><input type="date" className={INPUT} value={date} onChange={(e) => setDate(e.target.value)} /></div>
           <div>
-            <label className={LABEL}>Stream</label>
-            <select className={INPUT} value={project} onChange={(e) => setProject(e.target.value)}>
-              {["Governance", "Advisory", "Comms", "Docs", "Research", "Coord", "Other"].map((p) => <option key={p}>{p}</option>)}
+            <label className={LABEL}>Type</label>
+            <select className={INPUT} value={project} onChange={(e) => setProject(e.target.value)} data-testid="time-type">
+              {["Governance", "Advisory", "Comms", "Docs", "Research", "Coord", "Legal", "Compliance", "Financial", "Admin", "Other"].map((p) => <option key={p}>{p}</option>)}
             </select>
           </div>
           <div><label className={LABEL}>Hours *</label><input type="number" min={0.25} step={0.25} className={INPUT} value={hours} onChange={(e) => setHours(parseFloat(e.target.value) || 0)} data-testid="time-hours" /></div>
@@ -514,6 +542,260 @@ export function GenerateInvoiceModal({ open, onClose }: { open: boolean; onClose
 
         <div className={FOOT}>
           <button onClick={submit} disabled={eligibleEntries.length === 0} className={`${SUBMIT} disabled:opacity-30 disabled:cursor-not-allowed`} data-testid="submit-invoice">Generate Draft</button>
+          <button onClick={onClose} className={CANCEL}>Cancel</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Request Approval (Associate / Counsel) ────────────────────────────────
+
+export function RequestApprovalModal({ open, onClose, defaultLinkedTaskId, defaultLinkedClientId, defaultLinkedTimeEntryId, defaultLinkedInvoiceId, defaultRequestedAction }: {
+  open: boolean; onClose: () => void;
+  defaultLinkedTaskId?: string; defaultLinkedClientId?: string; defaultLinkedTimeEntryId?: string; defaultLinkedInvoiceId?: string;
+  defaultRequestedAction?: "delete_invoice" | "general";
+}) {
+  const { user } = usePortalAuth();
+  const { addApproval, clients, tasks, timeEntries, invoices } = usePortalData();
+  const [type, setType] = useState<ApprovalType>("Governance");
+  const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [linkedClientId, setLinkedClientId] = useState(defaultLinkedClientId ?? "");
+  const [linkedTaskId, setLinkedTaskId] = useState(defaultLinkedTaskId ?? "");
+  const [linkedTimeEntryId, setLinkedTimeEntryId] = useState(defaultLinkedTimeEntryId ?? "");
+  const [linkedInvoiceId, setLinkedInvoiceId] = useState(defaultLinkedInvoiceId ?? "");
+
+  useEffect(() => {
+    if (open) {
+      setType(defaultRequestedAction === "delete_invoice" ? "Financial" : "Governance");
+      setTitle(defaultRequestedAction === "delete_invoice" && defaultLinkedInvoiceId
+        ? `Delete invoice ${defaultLinkedInvoiceId.toUpperCase()}` : "");
+      setSubtitle("");
+      setLinkedClientId(defaultLinkedClientId ?? "");
+      setLinkedTaskId(defaultLinkedTaskId ?? "");
+      setLinkedTimeEntryId(defaultLinkedTimeEntryId ?? "");
+      setLinkedInvoiceId(defaultLinkedInvoiceId ?? "");
+    }
+  }, [open, defaultLinkedTaskId, defaultLinkedClientId, defaultLinkedTimeEntryId, defaultLinkedInvoiceId, defaultRequestedAction]);
+
+  const submit = () => {
+    if (!title.trim() || !user) return;
+    addApproval(user.name, {
+      type, title: title.trim(), subtitle: subtitle.trim() || `Requested by ${user.name}`,
+      requestedBy: user.name, linkedClientId: linkedClientId || undefined,
+      linkedTaskId: linkedTaskId || undefined, linkedTimeEntryId: linkedTimeEntryId || undefined,
+      linkedInvoiceId: linkedInvoiceId || undefined,
+      requestedAction: defaultRequestedAction ?? "general",
+    });
+    onClose();
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Request Approval" subtitle="Escalate an action to Counsel or Principal for sign-off." width="max-w-xl">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Approval Type</label>
+            <select className={INPUT} value={type} onChange={(e) => setType(e.target.value as ApprovalType)} disabled={defaultRequestedAction === "delete_invoice"}>
+              <option>Governance</option><option>Financial</option><option>Legal</option><option>Document</option>
+            </select>
+          </div>
+          <div>
+            <label className={LABEL}>Linked Client (optional)</label>
+            <select className={INPUT} value={linkedClientId} onChange={(e) => setLinkedClientId(e.target.value)}>
+              <option value="">— None —</option>
+              {clients.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.company}</option>)}
+            </select>
+          </div>
+        </div>
+        <div><label className={LABEL}>Title *</label><input className={INPUT} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Authorize budget overage on Project X" data-testid="approval-title" /></div>
+        <div><label className={LABEL}>Justification</label><textarea rows={3} className={INPUT + " resize-none"} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Reason and context for the request…" /></div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className={LABEL}>Linked Task</label>
+            <select className={INPUT} value={linkedTaskId} onChange={(e) => setLinkedTaskId(e.target.value)}>
+              <option value="">— None —</option>
+              {tasks.filter((t) => !linkedClientId || t.clientId === linkedClientId).map((t) => <option key={t.id} value={t.id}>{t.title.slice(0, 30)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={LABEL}>Linked Time Entry</label>
+            <select className={INPUT} value={linkedTimeEntryId} onChange={(e) => setLinkedTimeEntryId(e.target.value)}>
+              <option value="">— None —</option>
+              {timeEntries.filter((te) => !linkedClientId || te.clientId === linkedClientId).slice(0, 30).map((te) => <option key={te.id} value={te.id}>{te.date} — {te.hours}h — {te.project}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={LABEL}>Linked Invoice</label>
+            <select className={INPUT} value={linkedInvoiceId} onChange={(e) => setLinkedInvoiceId(e.target.value)} disabled={defaultRequestedAction === "delete_invoice"}>
+              <option value="">— None —</option>
+              {invoices.map((inv) => <option key={inv.id} value={inv.id}>{inv.id.toUpperCase()} — {inv.currency} {inv.amount.toLocaleString()}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className={FOOT}>
+          <button onClick={submit} className={SUBMIT} data-testid="submit-approval">Submit Request</button>
+          <button onClick={onClose} className={CANCEL}>Cancel</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Edit Invoice ───────────────────────────────────────────────────────────
+
+export function EditInvoiceModal({ open, onClose, invoice }: { open: boolean; onClose: () => void; invoice: Invoice | null }) {
+  const { user } = usePortalAuth();
+  const { editInvoice } = usePortalData();
+  const [amount, setAmount] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [description, setDescription] = useState("");
+  const [period, setPeriod] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  useEffect(() => {
+    if (open && invoice) {
+      setAmount(invoice.amount); setDiscount(invoice.discount ?? 0);
+      setDescription(invoice.description); setPeriod(invoice.period); setDueDate(invoice.dueDate);
+    }
+  }, [open, invoice]);
+
+  const net = Math.max(0, amount - discount);
+
+  const submit = () => {
+    if (!invoice || !user) return;
+    editInvoice(user.name, invoice.id, { amount, discount, description, period, dueDate });
+    onClose();
+  };
+
+  if (!invoice) return null;
+
+  return (
+    <Modal open={open} onClose={onClose} title={`Edit Invoice ${invoice.id.toUpperCase()}`} subtitle="Adjust amount, discount, or descriptive fields.">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={LABEL}>Period</label><input className={INPUT} value={period} onChange={(e) => setPeriod(e.target.value)} /></div>
+          <div><label className={LABEL}>Due Date</label><input type="date" className={INPUT} value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
+        </div>
+        <div><label className={LABEL}>Description</label><input className={INPUT} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={LABEL}>Gross Amount ({invoice.currency})</label><input type="number" className={INPUT} value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} data-testid="edit-invoice-amount" /></div>
+          <div><label className={LABEL}>Discount ({invoice.currency})</label><input type="number" className={INPUT} value={discount} onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} data-testid="edit-invoice-discount" /></div>
+        </div>
+        <div className="bg-[#0F0F0F] border border-[#1F1F1F] rounded-sm p-3 flex items-center justify-between">
+          <span className="text-[10px] text-[#9B8B5F] uppercase tracking-widest">Net Total</span>
+          <span className="font-serif text-xl text-[#F8F8F6]">{invoice.currency} {net.toLocaleString()}</span>
+        </div>
+        <div className={FOOT}>
+          <button onClick={submit} className={SUBMIT} data-testid="submit-edit-invoice">Save Changes</button>
+          <button onClick={onClose} className={CANCEL}>Cancel</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Add Team Member ────────────────────────────────────────────────────────
+
+export function AddTeamMemberModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { user } = usePortalAuth();
+  const { clients, addTeamMember } = usePortalData();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<UserRole>("associate");
+  const [assignedClients, setAssignedClients] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setName(""); setEmail(""); setRole("associate"); setAssignedClients([]);
+    }
+  }, [open]);
+
+  const toggleClient = (id: string) =>
+    setAssignedClients((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+
+  const submit = () => {
+    if (!name.trim() || !email.trim() || !user) return;
+    addTeamMember(user.name, { name: name.trim(), email: email.trim(), role, assignedClients });
+    onClose();
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Add Team Member" subtitle="Provision portal access and assign client coverage." width="max-w-xl">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={LABEL}>Full Name *</label><input className={INPUT} value={name} onChange={(e) => setName(e.target.value)} placeholder="Sarah El-Khoury" data-testid="member-name" /></div>
+          <div><label className={LABEL}>Email *</label><input className={INPUT} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sarah@executivedesk.ae" data-testid="member-email" /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={LABEL}>Role</label>
+            <select className={INPUT} value={role} onChange={(e) => setRole(e.target.value as UserRole)} data-testid="member-role">
+              <option value="counsel">Counsel</option>
+              <option value="associate">Associate</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className={LABEL}>Assign Clients ({assignedClients.length} selected)</label>
+          <div className="bg-[#0F0F0F] border border-[#1F1F1F] rounded-sm p-3 max-h-40 overflow-y-auto space-y-1.5">
+            {clients.length === 0 && <p className="text-[#444] text-xs">No clients yet.</p>}
+            {clients.map((c) => (
+              <label key={c.id} className="flex items-center gap-2.5 cursor-pointer text-sm hover:bg-[#141414] px-2 py-1 rounded-sm">
+                <input type="checkbox" checked={assignedClients.includes(c.id)} onChange={() => toggleClient(c.id)} className="accent-[#9B8B5F]" />
+                <span className="text-[#9B8B5F] font-mono text-xs w-12">{c.code}</span>
+                <span className="text-[#F8F8F6]">{c.company}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className={FOOT}>
+          <button onClick={submit} className={SUBMIT} data-testid="submit-member">Provision Access</button>
+          <button onClick={onClose} className={CANCEL}>Cancel</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Resolve Time Dispute ───────────────────────────────────────────────────
+
+export function ResolveDisputeModal({ open, onClose, entryId, currentReason }: { open: boolean; onClose: () => void; entryId: string | null; currentReason?: string }) {
+  const { user } = usePortalAuth();
+  const { updateTimeStatus } = usePortalData();
+  const [resolution, setResolution] = useState("");
+  const [outcome, setOutcome] = useState<"Approved" | "Submitted">("Approved");
+
+  useEffect(() => { if (open) { setResolution(""); setOutcome("Approved"); } }, [open]);
+
+  const submit = () => {
+    if (!entryId || !resolution.trim() || !user) return;
+    updateTimeStatus(user.name, entryId, outcome, undefined, resolution.trim());
+    onClose();
+  };
+
+  if (!entryId) return null;
+
+  return (
+    <Modal open={open} onClose={onClose} title="Resolve Dispute" subtitle="Adjudicate a disputed time entry with a documented resolution.">
+      <div className="space-y-4">
+        {currentReason && (
+          <div className="p-3 bg-rose-500/5 border border-rose-500/20 rounded-sm">
+            <p className="text-[10px] text-rose-300 uppercase tracking-widest mb-1">Original Dispute</p>
+            <p className="text-sm text-[#F8F8F6]">{currentReason}</p>
+          </div>
+        )}
+        <div>
+          <label className={LABEL}>Resolution Outcome</label>
+          <select className={INPUT} value={outcome} onChange={(e) => setOutcome(e.target.value as "Approved" | "Submitted")} data-testid="resolve-outcome">
+            <option value="Approved">Approve entry (uphold)</option>
+            <option value="Submitted">Return to Submitted (re-review)</option>
+          </select>
+        </div>
+        <div><label className={LABEL}>Resolution Note *</label><textarea rows={3} className={INPUT + " resize-none"} value={resolution} onChange={(e) => setResolution(e.target.value)} placeholder="Document the basis for resolution…" data-testid="resolve-note" /></div>
+        <div className={FOOT}>
+          <button onClick={submit} className={SUBMIT} data-testid="submit-resolve">Mark Resolved</button>
           <button onClick={onClose} className={CANCEL}>Cancel</button>
         </div>
       </div>

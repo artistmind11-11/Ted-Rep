@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { usePortalAuth } from "@/lib/portal-auth";
-import { usePortalData, InvoiceStatus } from "@/lib/portal-data";
+import { usePortalData, InvoiceStatus, Invoice } from "@/lib/portal-data";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie,
 } from "recharts";
-import { CheckCircle2, MessageSquare, Download, Eye, ShieldOff, Plus } from "lucide-react";
+import { CheckCircle2, MessageSquare, Download, Eye, ShieldOff, Plus, Pencil, Trash2 } from "lucide-react";
 import { MONTHLY_DATA } from "@/lib/portal-data";
-import { GenerateInvoiceModal, ToolbarButton } from "@/components/portal-forms";
+import { GenerateInvoiceModal, EditInvoiceModal, RequestApprovalModal, ToolbarButton } from "@/components/portal-forms";
 
 const RETAINER = 160;
 const HOURS_USED = 124;
-const GOLD = "#9B8B5F";
 
 const STATUS_STYLE: Record<InvoiceStatus, string> = {
   Draft: "text-[#555] bg-[#1A1A1A] border-[#2A2A2A]",
@@ -35,10 +34,12 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 
 export default function Billing() {
   const { user, can } = usePortalAuth();
-  const { invoices, clients, updateInvoiceStatus } = usePortalData();
+  const { invoices, clients, updateInvoiceStatus, deleteInvoice } = usePortalData();
   const [disputeId, setDisputeId] = useState<string | null>(null);
   const [disputeNote, setDisputeNote] = useState("");
   const [showGenerate, setShowGenerate] = useState(false);
+  const [editTarget, setEditTarget] = useState<Invoice | null>(null);
+  const [deleteRequestTarget, setDeleteRequestTarget] = useState<string | null>(null);
 
   if (!can("view_billing_own") && !can("view_billing_all")) {
     return (
@@ -53,6 +54,8 @@ export default function Billing() {
   const myInvoices = can("view_billing_all") ? invoices : invoices.filter((i) => i.clientId === user?.clientId);
   const totalPaid = myInvoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
   const totalUpcoming = myInvoices.filter((i) => i.status === "Upcoming").reduce((s, i) => s + i.amount, 0);
+  const paidCount = myInvoices.filter((i) => i.status === "Paid").length;
+  const unpaidCount = myInvoices.filter((i) => i.status !== "Paid").length;
 
   const donutData = [
     { name: "Used", value: HOURS_USED, fill: "rgba(155,139,95,0.78)" },
@@ -60,6 +63,19 @@ export default function Billing() {
   ];
 
   const revenueData = MONTHLY_DATA.map((d) => ({ ...d, label: d.month === "May" ? `${d.month}*` : d.month }));
+
+  const isPrincipal = user?.role === "admin";
+  const isCounsel = user?.role === "counsel";
+
+  const handleDelete = (id: string) => {
+    if (isPrincipal) {
+      if (window.confirm(`Delete invoice ${id.toUpperCase()}? This action cannot be undone.`)) {
+        deleteInvoice(user?.name ?? "Principal", id);
+      }
+    } else if (isCounsel) {
+      setDeleteRequestTarget(id);
+    }
+  };
 
   return (
     <div>
@@ -73,10 +89,13 @@ export default function Billing() {
         )}
       </div>
       <GenerateInvoiceModal open={showGenerate} onClose={() => setShowGenerate(false)} />
+      <EditInvoiceModal open={!!editTarget} onClose={() => setEditTarget(null)} invoice={editTarget} />
+      <RequestApprovalModal open={!!deleteRequestTarget} onClose={() => setDeleteRequestTarget(null)}
+        defaultLinkedInvoiceId={deleteRequestTarget ?? undefined}
+        defaultRequestedAction="delete_invoice" />
 
       {can("view_billing_all") && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Retainer Utilisation Donut */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             className="bg-[#141414] border border-[#222] rounded-sm p-5">
             <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Retainer Utilisation</p>
@@ -102,7 +121,6 @@ export default function Billing() {
             </div>
           </motion.div>
 
-          {/* Revenue Trend */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="lg:col-span-2 bg-[#141414] border border-[#222] rounded-sm p-5">
             <p className="text-[#9B8B5F] text-xs uppercase tracking-widest mb-1">Revenue Trend</p>
@@ -124,16 +142,17 @@ export default function Billing() {
       {/* Summary figures */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Invoices", value: myInvoices.length, color: "text-[#F8F8F6]" },
-          { label: "Paid", value: myInvoices.filter((i) => i.status === "Paid").length, color: "text-green-400" },
-          { label: "Total Paid", value: `AED ${(totalPaid / 1000).toFixed(0)}K`, color: "text-green-400" },
-          { label: "Outstanding", value: `AED ${(totalUpcoming / 1000).toFixed(0)}K`, color: "text-amber-400" },
-        ].map(({ label, value, color }, i) => (
+          { label: "Total Invoices", value: myInvoices.length, sub: `${unpaidCount} unpaid`, color: "text-[#F8F8F6]" },
+          { label: "Paid", value: paidCount, sub: `${unpaidCount} unpaid · ${myInvoices.length} total`, color: "text-green-400" },
+          { label: "Total Paid", value: `AED ${(totalPaid / 1000).toFixed(0)}K`, sub: "Settled lifetime", color: "text-green-400" },
+          { label: "Outstanding", value: `AED ${(totalUpcoming / 1000).toFixed(0)}K`, sub: "Awaiting settlement", color: "text-amber-400" },
+        ].map(({ label, value, sub, color }, i) => (
           <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             className="bg-[#141414] border border-[#222] rounded-sm p-5 group hover:border-[#9B8B5F]/20 transition-colors relative overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#9B8B5F]/0 to-transparent group-hover:via-[#9B8B5F]/30 transition-all duration-500" />
             <p className="text-[#555] text-xs uppercase tracking-widest mb-3">{label}</p>
             <p className={`font-serif text-2xl ${color}`}>{value}</p>
+            {sub && <p className="text-[#444] text-xs mt-1.5">{sub}</p>}
           </motion.div>
         ))}
       </div>
@@ -156,6 +175,7 @@ export default function Billing() {
             <tbody>
               {myInvoices.map((inv) => {
                 const client = clients.find((c) => c.id === inv.clientId);
+                const net = inv.discount ? Math.max(0, inv.amount - inv.discount) : inv.amount;
                 return (
                   <tr key={inv.id} className="border-b border-[#1A1A1A] hover:bg-[rgba(255,255,255,0.01)] transition-colors" data-testid={`invoice-${inv.id}`}>
                     <td className="px-5 py-3.5 text-[#9B8B5F] text-xs font-mono">{inv.id.toUpperCase()}</td>
@@ -166,12 +186,15 @@ export default function Billing() {
                     <td className="px-5 py-3.5 text-[#666] text-sm max-w-[220px]">
                       <p className="truncate">{inv.description}</p>
                     </td>
-                    <td className="px-5 py-3.5 text-[#F8F8F6] font-mono text-sm">AED {inv.amount.toLocaleString()}</td>
+                    <td className="px-5 py-3.5 font-mono text-sm">
+                      <p className="text-[#F8F8F6]">AED {net.toLocaleString()}</p>
+                      {inv.discount ? <p className="text-[#9B8B5F] text-xs">−AED {inv.discount.toLocaleString()} disc.</p> : null}
+                    </td>
                     <td className="px-5 py-3.5">
                       <span className={`text-xs px-2 py-0.5 rounded-sm border ${STATUS_STYLE[inv.status]}`}>{inv.status}</span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         {inv.status === "Upcoming" && (
                           <button className="text-[#9B8B5F] text-xs hover:text-[#B8A870] transition-colors flex items-center gap-1">
                             <Eye size={12} /> Preview
@@ -195,6 +218,28 @@ export default function Billing() {
                               <MessageSquare size={12} /> Dispute
                             </button>
                           </>
+                        )}
+                        {can("mark_invoice_paid") && inv.status !== "Paid" && (
+                          <button onClick={() => updateInvoiceStatus(user?.name ?? "Counsel", inv.id, "Paid")}
+                            data-testid={`mark-paid-${inv.id}`}
+                            className="text-green-400 text-xs hover:text-green-300 transition-colors flex items-center gap-1">
+                            <CheckCircle2 size={12} /> Mark Paid
+                          </button>
+                        )}
+                        {can("edit_invoice") && (
+                          <button onClick={() => setEditTarget(inv)}
+                            data-testid={`edit-invoice-${inv.id}`}
+                            className="text-[#9B8B5F] text-xs hover:text-[#B8A870] transition-colors flex items-center gap-1">
+                            <Pencil size={12} /> Edit
+                          </button>
+                        )}
+                        {(isPrincipal || isCounsel) && (
+                          <button onClick={() => handleDelete(inv.id)}
+                            data-testid={`delete-invoice-${inv.id}`}
+                            className="text-red-400 text-xs hover:text-red-300 transition-colors flex items-center gap-1"
+                            title={isCounsel ? "Counsel: deletion requires Principal approval" : "Delete invoice"}>
+                            <Trash2 size={12} /> {isCounsel ? "Request Delete" : "Delete"}
+                          </button>
                         )}
                       </div>
                     </td>
