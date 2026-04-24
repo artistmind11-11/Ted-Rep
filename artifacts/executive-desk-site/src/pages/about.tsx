@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Globe, Award, Briefcase, MapPin } from "lucide-react";
+import heroBg from "@images/Website Images/Elegant office.png";
+import ctaBg from "@images/Website Images/Glass_concrete_building_202604231712.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -47,8 +49,9 @@ export default function About() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url(${heroBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div
             variants={fadeUp}
@@ -183,7 +186,7 @@ export default function About() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-left mb-16"
           >
             <span className="text-primary text-xs uppercase tracking-[0.3em] font-medium mb-4 block">
               What We Do Best
@@ -259,7 +262,7 @@ export default function About() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.07, duration: 0.5 }}
-                    className="border border-border rounded-sm p-4 text-center hover:border-primary/40 hover:bg-muted/30 transition-all"
+                    className="border border-border rounded-sm p-4 text-left hover:border-primary/40 hover:bg-muted/30 transition-all"
                   >
                     <p className="font-serif text-foreground">{city}</p>
                   </motion.div>
@@ -271,8 +274,10 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-[#111111]">
-        <div className="container mx-auto px-6 text-center max-w-2xl">
+      <section className="py-24 bg-[#111111] relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.30] dark:opacity-[0.25]" style={{ backgroundImage: `url(${ctaBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#111111]/80 to-[#111111]" />
+        <div className="container mx-auto px-6 text-left max-w-2xl relative z-10">
           <motion.div
             variants={fadeUp}
             initial="hidden"

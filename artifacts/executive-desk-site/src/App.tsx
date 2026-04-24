@@ -7,6 +7,8 @@ import { PortalAuthProvider, usePortalAuth } from "@/lib/portal-auth";
 import { PortalDataProvider } from "@/lib/portal-data";
 import { PortalLayout } from "@/components/portal-layout";
 import { Layout } from "@/components/layout";
+import { ScrollToTop } from "@/components/scroll-to-top";
+import { BackToTop } from "@/components/back-to-top";
 import NotFound from "@/pages/not-found";
 
 // Marketing pages
@@ -106,8 +108,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <ScrollToTop />
             <AppRouter />
           </WouterRouter>
+          <BackToTop />
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>

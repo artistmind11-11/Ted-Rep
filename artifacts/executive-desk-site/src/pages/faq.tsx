@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import heroBg from "@images/Website Images/Skyscraper_interior_Dubai_202604231712.jpeg";
+import midBg from "@images/Website Images/Luxury_tower_lobby_202604241329.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -117,8 +119,9 @@ export default function FAQ() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url('${heroBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
             <span className="text-primary text-xs uppercase tracking-[0.3em] font-medium mb-6 block">
@@ -153,13 +156,15 @@ export default function FAQ() {
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
       {/* STILL HAVE QUESTIONS */}
-      <section className="py-24 bg-muted/20">
-        <div className="container mx-auto px-6 max-w-3xl text-center">
+      <section className="relative py-24 bg-muted/20 overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" style={{ backgroundImage: `url('${midBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
+        <div className="container mx-auto px-6 max-w-3xl text-left relative z-10">
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <h2 className="text-4xl font-serif font-medium text-foreground mb-6">
               Still Have Questions?
             </h2>
-            <p className="text-muted-foreground leading-relaxed mb-10 max-w-xl mx-auto">
+            <p className="text-muted-foreground leading-relaxed mb-10 max-w-xl">
               Every situation is different. If your question isn't answered here, reach out directly and we'll respond within one business day.
             </p>
             <Link

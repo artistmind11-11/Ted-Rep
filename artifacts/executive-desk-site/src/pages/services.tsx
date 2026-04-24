@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ShieldCheck, Lock, FileText, Globe, Users, ArrowRight } from "lucide-react";
+import heroBg from "@images/Website Images/Cross-border_business_Middle_202604231712.jpeg";
+import midBg from "@images/Website Images/Luxury_boardroom_table_202604231712.jpeg";
+import ctaBg from "@images/Website Images/Wax_seal_pressed_202604231712.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -91,8 +94,9 @@ export default function Services() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url(${heroBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div
             variants={fadeUp}
@@ -182,8 +186,10 @@ export default function Services() {
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
       {/* PILLAR 2: COORDINATION */}
-      <section className="py-24 bg-muted/20" id="coordination">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <section className="relative py-24 bg-muted/20 overflow-hidden" id="coordination">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" style={{ backgroundImage: `url(${midBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -235,7 +241,7 @@ export default function Services() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-left mb-16"
           >
             <span className="text-primary text-xs uppercase tracking-[0.3em] font-medium mb-4 block">
               Pillar III
@@ -260,9 +266,9 @@ export default function Services() {
                   whileInView="visible"
                   viewport={{ once: true }}
                   custom={i * 0.4}
-                  className="text-center border border-border rounded-sm p-8 hover:border-primary/30 transition-colors"
+                  className="text-left border border-border rounded-sm p-8 hover:border-primary/30 transition-colors"
                 >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                     <Icon size={24} className="text-primary" />
                   </div>
                   <h3 className="font-serif text-xl text-foreground mb-4">{item.title}</h3>
@@ -277,7 +283,7 @@ export default function Services() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mt-16 p-8 bg-muted/30 border border-border rounded-sm text-center"
+            className="mt-16 p-8 bg-muted/30 border border-border rounded-sm text-left"
           >
             <p className="text-foreground font-serif text-xl md:text-2xl italic">
               "UAE Free Zones. KSA MISA. Qatar QFC. Regional holiday calendars. Prayer time alignment. Cultural communication protocols. These are not checklists—they are fluencies."
@@ -287,8 +293,10 @@ export default function Services() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-[#111111]">
-        <div className="container mx-auto px-6 text-center max-w-2xl">
+      <section className="py-24 bg-[#111111] relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.30] dark:opacity-[0.25]" style={{ backgroundImage: `url(${ctaBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#111111]/80 to-[#111111]" />
+        <div className="container mx-auto px-6 text-left max-w-2xl relative z-10">
           <motion.div
             variants={fadeUp}
             initial="hidden"

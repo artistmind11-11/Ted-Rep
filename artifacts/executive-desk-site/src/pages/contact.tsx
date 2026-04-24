@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { ArrowRight, MapPin, Clock, Shield } from "lucide-react";
+import heroBg from "@images/Website Images/Steel_vault_frosted_202604231712.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -46,8 +47,9 @@ export default function Contact() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url('${heroBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
             <span className="text-primary text-xs uppercase tracking-[0.3em] font-medium mb-6 block">

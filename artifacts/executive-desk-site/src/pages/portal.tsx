@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Lock, ShieldCheck, ArrowRight, Key } from "lucide-react";
 import { useState } from "react";
-import logoPath from "@assets/ED_Logo_1776701058230.png";
+import logoPath from "@assets/No_text_transparent_logo_new.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },

@@ -4,7 +4,7 @@ import { ModeToggle } from "./mode-toggle";
 import { Menu, X, Mail, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import logoPath from "@assets/No_text_transparent_logo_1776851366068.png";
+import logoPath from "@assets/No_text_transparent_logo_new.png";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -47,11 +47,11 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className={`container mx-auto pl-0 pr-4 md:pr-8 flex items-center justify-between transition-all duration-300 ${HEADER_H}`}>
           {/* Logo — fills full header height, charcoal-bg badge so transparent dark mark always reads */}
           <Link href="/" className="flex items-center gap-4 z-50 h-full">
-            <div className={`${LOGO_H} bg-[#141413] flex items-center justify-center border-r border-border/60 transition-all duration-300`}>
+            <div className={`${LOGO_H} flex items-center justify-center transition-all duration-300`}>
               <img
                 src={logoPath}
                 alt="The Executive Desk"
-                className="h-[92%] w-[92%] object-contain"
+                className="h-full w-full object-contain"
               />
             </div>
             <span className="font-serif font-medium text-lg md:text-xl tracking-wide hidden sm:block">

@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Calendar } from "lucide-react";
+import heroBg from "@images/Website Images/Slim Office.jpeg";
+import midBg from "@images/Website Images/Elefante office 1.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -84,8 +86,9 @@ export default function Blog() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url('${heroBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
             <span className="text-primary text-xs uppercase tracking-[0.3em] font-medium mb-6 block">
@@ -156,8 +159,10 @@ export default function Blog() {
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
       {/* ARTICLE GRID */}
-      <section className="py-24 bg-muted/20">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <section className="relative py-24 bg-muted/20 overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" style={{ backgroundImage: `url('${midBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {rest.map((article, i) => (
               <motion.div

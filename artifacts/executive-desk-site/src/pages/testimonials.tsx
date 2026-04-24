@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Quote, ArrowRight } from "lucide-react";
+import heroBg from "@images/Website Images/Emirates Towers.png";
+import midBg from "@images/Website Images/Private_jet_interior_202604241329.jpeg";
+import ctaBg from "@images/Website Images/Add_office_items_202604241329.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -63,8 +66,9 @@ export default function Testimonials() {
   return (
     <div className="w-full">
       {/* PAGE HERO */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-32 overflow-hidden flex items-center min-h-[60vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url('${heroBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-4xl">
           <motion.div
             variants={fadeUp}
@@ -98,16 +102,16 @@ export default function Testimonials() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="bg-[#111111] rounded-sm p-10 md:p-16 text-center relative overflow-hidden"
+            className="bg-[#111111] rounded-sm p-10 md:p-16 text-left relative overflow-hidden"
           >
             <div className="absolute top-8 left-8 text-[#9B8B5F]/20">
               <Quote size={80} />
             </div>
             <div className="relative z-10">
-              <p className="text-[#F8F8F6] font-serif text-2xl md:text-3xl font-light italic leading-relaxed mb-10 max-w-3xl mx-auto">
+              <p className="text-[#F8F8F6] font-serif text-2xl md:text-3xl font-light italic leading-relaxed mb-10 max-w-3xl">
                 "{testimonials[0].quote}"
               </p>
-              <div className="w-10 h-0.5 bg-[#9B8B5F] mx-auto mb-6" />
+              <div className="w-10 h-0.5 bg-[#9B8B5F] mb-6" />
               <p className="text-[#9B8B5F] text-sm uppercase tracking-[0.2em] font-medium">
                 {testimonials[0].author}
               </p>
@@ -125,8 +129,10 @@ export default function Testimonials() {
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
       {/* ALL TESTIMONIALS */}
-      <section className="py-24 bg-muted/20">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <section className="relative py-24 bg-muted/20 overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" style={{ backgroundImage: `url('${midBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {testimonials.slice(1).map((t, i) => (
               <motion.div
@@ -178,8 +184,10 @@ export default function Testimonials() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-[#111111]">
-        <div className="container mx-auto px-6 text-center max-w-2xl">
+      <section className="py-24 bg-[#111111] relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.30] dark:opacity-[0.25]" style={{ backgroundImage: `url('${ctaBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#111111]/80 to-[#111111]" />
+        <div className="container mx-auto px-6 text-left max-w-2xl relative z-10">
           <motion.div
             variants={fadeUp}
             initial="hidden"

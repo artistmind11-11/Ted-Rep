@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { usePortalAuth, DEMO_USERS, UserRole } from "@/lib/portal-auth";
 import { Lock, Shield, Key, Users, Briefcase, UserCircle, ArrowRight } from "lucide-react";
-import logoPath from "@assets/ED_Logo_1776701058230.png";
+import logoPath from "@assets/No_text_transparent_logo_new.png";
 
 const ROLE_INFO: Record<UserRole, { label: string; subtitle: string; icon: React.ComponentType<{size?: number; className?: string}>; color: string; border: string; description: string }> = {
   admin: {

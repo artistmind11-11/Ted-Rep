@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { articles } from "./blog";
+import heroBg from "@images/Website Images/Luxury_boardroom_table_202604231712.jpeg";
+import relatedBg from "@images/Website Images/Color_palettes_GCC_202604231712.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -110,8 +112,9 @@ export default function BlogPost({ params }: BlogPostProps) {
       </div>
 
       {/* ARTICLE HEADER */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 to-background" />
+      <section className="relative py-24 overflow-hidden flex items-center min-h-[50vh]">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url('${heroBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
         <div className="container mx-auto px-6 relative z-10 max-w-3xl">
           <motion.div variants={fadeUp} initial="hidden" animate="visible">
             <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
@@ -168,8 +171,10 @@ export default function BlogPost({ params }: BlogPostProps) {
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
       {/* RELATED ARTICLES */}
-      <section className="py-24 bg-muted/20">
-        <div className="container mx-auto px-6 max-w-6xl">
+      <section className="relative py-24 bg-muted/20 overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" style={{ backgroundImage: `url('${relatedBg}')` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
           <h2 className="font-serif text-3xl text-foreground mb-12">Further Reading</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {relatedArticles.map((related, i) => (

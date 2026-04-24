@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import heroBg from "@images/Website Images/Executive_office_Dubai_202604231123_3.jpeg";
 import {
   ArrowRight,
   ShieldCheck,
@@ -21,8 +22,8 @@ export default function Home() {
     <div className="w-full">
       {/* HERO — Centered vertical narrative */}
       <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-[0.06] dark:opacity-[0.12]" />
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/30 via-background/85 to-background" />
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.55] dark:opacity-[0.30]" style={{ backgroundImage: `url(${heroBg})` }} />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/75 to-background" />
 
         <div className="container mx-auto px-6 relative z-10 text-center max-w-4xl pt-20">
           <motion.span
@@ -340,7 +341,8 @@ export default function Home() {
 
       {/* GCC FOCUS */}
       <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.04] dark:opacity-[0.08]" />
+        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.40] dark:opacity-[0.25]" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-background/60 to-background/80" />
         <div className="container mx-auto px-6 relative z-10 text-center max-w-3xl">
           <Globe className="w-11 h-11 mx-auto text-primary mb-7" strokeWidth={1.3} />
           <span className="text-[11px] uppercase tracking-[0.22em] text-primary mb-4 inline-block">
