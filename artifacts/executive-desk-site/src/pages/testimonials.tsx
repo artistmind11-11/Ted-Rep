@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Quote, ArrowRight } from "lucide-react";
-import heroBg from "@images/Website Images/Emirates Towers.png";
+import heroBg from "@images/Website Images/Add_office_items_202604241329.jpeg";
 import midBg from "@images/Website Images/Private_jet_interior_202604241329.jpeg";
-import ctaBg from "@images/Website Images/Add_office_items_202604241329.jpeg";
+import ctaBg from "@images/Website Images/Emirates Towers.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
