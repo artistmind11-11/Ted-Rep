@@ -82,7 +82,6 @@ export function Layout({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <ModeToggle />
             <Link
               href="/portal"
               className="btn-gold-shimmer bg-primary text-primary-foreground px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] rounded-[2px] hover:bg-primary/90 transition-colors font-medium"
@@ -93,7 +92,6 @@ export function Layout({ children }: { children: ReactNode }) {
 
           {/* Mobile Toggle */}
           <div className="flex md:hidden items-center gap-3 z-50">
-            <ModeToggle />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 -mr-2 text-foreground"

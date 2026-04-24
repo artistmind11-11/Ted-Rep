@@ -36,7 +36,7 @@ export function BackToTop() {
           whileHover={{ y: -4, backgroundColor: "hsl(var(--primary) / 0.1)" }}
           whileTap={{ scale: 0.95 }}
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-[60] w-12 h-12 rounded-full bg-white dark:bg-black text-primary shadow-silk-lg flex items-center justify-center border-2 border-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="fixed bottom-8 right-8 z-[60] w-12 h-12 rounded-full bg-[#2C2C2C] text-primary shadow-silk-lg flex items-center justify-center border-2 border-[#9B8B5F] transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
           aria-label="Back to top"
         >
           <ChevronUp size={24} strokeWidth={3} />

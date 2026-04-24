@@ -137,7 +137,6 @@ export function PortalLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ModeToggle />
             <div className={`text-[9px] px-2 py-1 rounded-sm font-medium uppercase tracking-widest ${ROLE_COLORS[user.role]}`}>
               {ROLE_LABELS[user.role]}
             </div>
