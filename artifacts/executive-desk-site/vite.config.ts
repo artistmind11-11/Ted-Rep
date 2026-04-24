@@ -3,35 +3,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const isReplit = !!process.env.REPL_ID;
-const rawPort = process.env.PORT || "5173";
-const port = Number(rawPort);
-const basePath = process.env.BASE_PATH || "/";
-
 export default defineConfig({
-  base: basePath,
+  base: "/",
   plugins: [
     react(),
     tailwindcss(),
-    ...(isReplit
-      ? [
-          await import("@replit/vite-plugin-runtime-error-modal").then((m) =>
-            m.default(),
-          ),
-          ...(process.env.NODE_ENV !== "production"
-            ? [
-                await import("@replit/vite-plugin-cartographer").then((m) =>
-                  m.cartographer({
-                    root: path.resolve(import.meta.dirname, ".."),
-                  }),
-                ),
-                await import("@replit/vite-plugin-dev-banner").then((m) =>
-                  m.devBanner(),
-                ),
-              ]
-            : []),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
@@ -47,7 +23,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port,
+    port: 5173,
     host: "0.0.0.0",
     allowedHosts: true,
     fs: {
@@ -56,7 +32,7 @@ export default defineConfig({
     },
   },
   preview: {
-    port,
+    port: 5173,
     host: "0.0.0.0",
     allowedHosts: true,
   },
